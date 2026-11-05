@@ -17,7 +17,7 @@
   --g:#16a34a;--gd:#0f8a5f;--gdd:#0a5e38;--gl:#e8f7ef;--gl2:#ccebd9;
   --ok:#0e7a49;--okl:#e4f6ec;--mid:#a16207;--midl:#fdf3dc;--bad:#b42318;--badl:#fdecea;
   --via:#6d4fc2;--via-l:#f3effc;--via-b:#dcd2f5;
-  --ent:#be185d;--ent-l:#fdf0f6;--ent-b:#f5cfe0;
+  --ent:#3f8a1f;--ent-l:#f1f8ea;--ent-b:#d2e8c1;
   --pet:#2563eb;--pet-l:#eef4ff;--pet-b:#cfe0fb;
   --ter:#0f8a5f;--ter-l:#ebf8f1;--ter-b:#c8eadb;
   --lam:#c2650f;--lam-l:#fdf3e7;--lam-b:#f3dbbd;
@@ -110,7 +110,7 @@ main{padding:18px 24px 40px;max-width:1800px;margin:0 auto}
 .it.via{background:var(--via-l);border-color:var(--via-b)}.it.via .k{color:var(--via)}
 .it.ent{background:var(--ent-l);border-color:var(--ent-b)}.it.ent .k{color:var(--ent)}
 .it .cl{font-size:11px;color:var(--text);margin-top:2px;display:flex;justify-content:space-between;gap:6px}.it .cl span:last-child{color:var(--text2);font-family:var(--mono);white-space:nowrap}
-.hero.ent{background:linear-gradient(120deg,#9d174d 0%,#be185d 60%,#db2777 100%);box-shadow:0 6px 18px rgba(190,24,93,.25)}
+.hero.ent{background:linear-gradient(120deg,#0f8a5f 0%,#2f9a3a 60%,#4caf3c 100%);box-shadow:0 6px 18px rgba(47,154,58,.25)}
 .btn.ent{background:var(--ent);border-color:var(--ent);color:#fff}.btn.ent:hover{filter:brightness(.95)}
 .egrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:12px}
 .ed{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh);overflow:hidden;scroll-margin-top:58px}
@@ -257,7 +257,7 @@ table.t tr.cl{cursor:pointer}table.t tr.cl:hover td{background:#fafafa}
 
 <script>
 'use strict';
-const VERSION = 'v2.3';
+const VERSION = 'v2.4';
 document.getElementById('ver').textContent = '· ' + VERSION;
 
 /* ═════════ CONEXIONES (las mismas que usan las apps) ═════════ */
@@ -829,14 +829,14 @@ function entWhats(f) {
 async function hojaRuta(f) {
   const doc = pdfNuevo('portrait'); if (!doc) return;
   const logo = await logoData(), W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 10;
-  pdfEncabezado(doc, 'Hoja de ruta · Entregas Eugenio', `${DIASL[dow(f)]} ${dm(f)}/${f.slice(0, 4)}`, [190, 24, 93], logo);
+  pdfEncabezado(doc, 'Hoja de ruta · Entregas Eugenio', `${DIASL[dow(f)]} ${dm(f)}/${f.slice(0, 4)}`, [63, 138, 31], logo);
   let y = 32;
   const C = [M, M + 8, M + 52, M + 112, M + 140, M + 162], hdr = ['#', 'Cliente', 'Lugar de entrega', 'Horario', 'Posic.', 'Kg'];
   entViajesDia(f).forEach(g => {
     const p = entOcc(g), vivas = g.list.filter(e => e.estado !== 'cancelada');
     if (y > H - 50) { doc.addPage(); y = 14; }
-    doc.setFillColor(253, 240, 246); doc.setDrawColor(245, 207, 224); doc.roundedRect(M, y, W - 2 * M, 10, 2, 2, 'FD');
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(190, 24, 93); doc.text(`Viaje ${g.n}`, M + 4, y + 6.7);
+    doc.setFillColor(241, 248, 234); doc.setDrawColor(210, 232, 193); doc.roundedRect(M, y, W - 2 * M, 10, 2, 2, 'FD');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(63, 138, 31); doc.text(`Viaje ${g.n}`, M + 4, y + 6.7);
     doc.setFontSize(9); doc.setTextColor(31, 41, 55); doc.text(`${vivas.length} entrega${vivas.length === 1 ? '' : 's'} · ${g.pos ? g.pos + ' posiciones · ' : ''}${fmt(g.kg)} kg · ${pct(p)} de ${capTxt('Eugenio')}`, W - M - 4, y + 6.7, { align: 'right' });
     y += 13;
     doc.setFillColor(243, 244, 246); doc.rect(M, y, W - 2 * M, 6, 'F'); doc.setFontSize(7); doc.setTextColor(107, 114, 128); hdr.forEach((t, i) => doc.text(t.toUpperCase(), C[i] + 1.5, y + 4)); y += 6;
@@ -869,8 +869,8 @@ async function logoData() {
   try { const b = await (await fetch('icon-cronograma-192.png')).blob(); LOGO_DATA = await new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(b); }); } catch (_) { LOGO_DATA = ''; }
   return LOGO_DATA;
 }
-const RGB = { ent: [190, 24, 93], via: [109, 79, 194], pet: [37, 99, 235], ter: [15, 138, 95], lam: [194, 101, 15], ref: [14, 138, 138], evt: [120, 113, 108] };
-const RGBL = { ent: [253, 240, 246], via: [243, 239, 252], pet: [238, 244, 255], ter: [235, 248, 241], lam: [253, 243, 231], ref: [232, 246, 246], evt: [245, 245, 244] };
+const RGB = { ent: [63, 138, 31], via: [109, 79, 194], pet: [37, 99, 235], ter: [15, 138, 95], lam: [194, 101, 15], ref: [14, 138, 138], evt: [120, 113, 108] };
+const RGBL = { ent: [241, 248, 234], via: [243, 239, 252], pet: [238, 244, 255], ter: [235, 248, 241], lam: [253, 243, 231], ref: [232, 246, 246], evt: [245, 245, 244] };
 const occRGB = p => p == null ? [148, 163, 184] : p >= .85 ? [14, 122, 73] : p >= .6 ? [180, 130, 20] : [180, 35, 24];
 function pdfNuevo(orient) {
   if (!window.jspdf) { toast('No se pudo cargar el generador de PDF (revisá internet)', true); return null; }
