@@ -257,7 +257,7 @@ table.t tr.cl{cursor:pointer}table.t tr.cl:hover td{background:#fafafa}
 
 <script>
 'use strict';
-const VERSION = 'v2.2';
+const VERSION = 'v2.3';
 document.getElementById('ver').textContent = '· ' + VERSION;
 
 /* ═════════ CONEXIONES (las mismas que usan las apps) ═════════ */
@@ -342,7 +342,8 @@ function barra(p) { return `<div class="occ"><i style="width:${Math.min(100, Mat
 const S = {
   ter: null, lam: null, pet: null, via: null,
   petPedidos: [], petProd: {},
-  err: { ter: '', lam: '', pet: '', via: '' },
+  err: { ter: '', lam: '', pet: '', via: '', cob: '', ep: '' },
+  cob: [], ep: null,
   ini: lunesDe(hoyISO()),
   tab: lsGet('cg_tab') || 'crono',
   ocultas: (() => { try { return JSON.parse(lsGet('cg_ocultas') || '[]'); } catch (_) { return []; } })(),
@@ -399,6 +400,24 @@ function parseViajes(txt) {
   return { viajes: (o.viajes || []).map(migrarViaje), viajesEliminados: o.viajesEliminados || {}, capacidades };
 }
 
+const COB_BIN = '6a0b2b196877513b27912597', EP_BIN = '6a7a079bda38895dfed1e0ed';
+let ultExtras = 0;
+async function cargarExtras(forzar) { // Seguimiento Cobranzas (clientes) y Estadopedidos (OC) · solo lectura
+  if (!forzar && Date.now() - ultExtras < 10 * 60000) return; ultExtras = Date.now();
+  const c = { key: JB_KEY_DEF, type: 'master' };
+  const [cob, ep] = await Promise.allSettled([jbGet(Object.assign({ bin: COB_BIN }, c)), jbGet(Object.assign({ bin: EP_BIN }, c))]);
+  if (cob.status === 'fulfilled') { S.cob = ((cob.value && cob.value.clientes) || []).map(x => ({ nombre: String(x.razonSocial || '').trim(), cuit: x.cuit || '', tel: ((x.contactos || [])[0] || {}).telefono || x.contactoTelefono || '', contacto: ((x.contactos || [])[0] || {}).nombre || x.contactoNombre || '' })).filter(x => x.nombre); S.err.cob = ''; }
+  else S.err.cob = cob.reason && cob.reason.message || 'error';
+  if (ep.status === 'fulfilled') { const r = ep.value || {}; S.ep = { ocs: r.ocs || [], entregas: r.entregas || [], borrados: r.borrados || {}, clientes: r.clientes || [] }; S.err.ep = ''; }
+  else S.err.ep = ep.reason && ep.reason.message || 'error';
+}
+function epPendientes() { // OC abiertas de Estadopedidos con su saldo (kg pedidos − entregados)
+  if (!S.ep) return [];
+  const b = S.ep.borrados || {}, ent = {};
+  S.ep.entregas.forEach(e => { if (!b[e.id]) ent[e.oc] = (ent[e.oc] || 0) + (+e.kg || 0); });
+  return S.ep.ocs.filter(o => !b[o.id]).map(o => ({ id: o.id, cli: o.cli, num: o.num, art: o.art || '', fe: o.fe || '', kg: +o.kg || 0, saldo: +((+o.kg || 0) - (ent[o.id] || 0)).toFixed(1), cerrada: !!o.cerradaManual }))
+    .filter(o => o.saldo > 0.05 && !o.cerrada).sort((a, b) => (a.fe || '9').localeCompare(b.fe || '9'));
+}
 async function cargarTermo() { try { S.ter = await jbGet(termoCfg()); S.err.ter = ''; } catch (e) { S.err.ter = e.message; } }
 async function cargarLam() { try { S.lam = await jbGet(lamCfg()); S.err.lam = ''; } catch (e) { S.err.lam = e.message; } }
 async function cargarGist(conPedidos) {
@@ -422,7 +441,7 @@ async function cargarGist(conPedidos) {
 let cargando = false, ultCarga = 0;
 async function cargarTodo(full) {
   if (cargando) return; cargando = true; renderSync();
-  await Promise.all([cargarTermo(), cargarLam(), cargarGist(full)]);
+  await Promise.all([cargarTermo(), cargarLam(), cargarGist(full), cargarExtras(full)]);
   cargando = false; ultCarga = Date.now(); render();
 }
 
@@ -501,7 +520,7 @@ function card(it, area) {
 /* ═════════ RENDER GENERAL ═════════ */
 const TABS = [{ id: 'crono', lbl: '📅 Cronograma' }, { id: 'viajes', lbl: '🚚 Viajes' }, { id: 'ent', lbl: '📦 Entregas clientes' }, { id: 'anal', lbl: '📊 Análisis de viajes' }];
 function renderSync() {
-  const lbl = { via: 'Viajes', pet: 'PET', ter: 'Termo', lam: 'Laminado' };
+  const lbl = { via: 'Viajes', pet: 'PET', ter: 'Termo', lam: 'Laminado', cob: 'Cobranzas', ep: 'Estadopedidos' };
   $('sync').innerHTML = Object.keys(lbl).map(k => { const e = S.err[k]; return `<span class="sb ${cargando ? 'load' : e ? 'err' : ''}" title="${esc(e)}">${lbl[k]}${e ? ': ' + esc(e) : ''}</span>`; }).join('')
     + `<button class="btn sm noprint" onclick="cargarTodo(true)" title="Actualizar">⟳</button>`;
 }
@@ -678,12 +697,17 @@ function entOcc(g) { const c = caps().Eugenio || { u: 'kg', cap: 2000 }; if (!c.
 function entViajeLibre(f) { const vs = entViajesDia(f); return vs.length ? vs[vs.length - 1].n : 1; }
 function entClientes() {
   const set = new Set();
+  (S.cob || []).forEach(c => set.add(c.nombre));
+  ((S.ep && S.ep.clientes) || []).forEach(c => c && set.add(String(c).trim()));
+  ((S.ep && S.ep.ocs) || []).forEach(o => o.cli && set.add(String(o.cli).trim()));
   S.petPedidos.forEach(p => p.cliente && set.add(String(p.cliente).trim()));
   ((S.lam && S.lam.ocs) || []).forEach(o => o.cliente && set.add(String(o.cliente).trim()));
   ((S.ter && S.ter.pedidos) || []).forEach(p => p.cliente && set.add(String(p.cliente).trim()));
   entVivas().forEach(e => e.cliente && set.add(e.cliente));
-  return [...set].sort((a, b) => a.localeCompare(b));
+  const vistos = new Map(); [...set].forEach(c => { const k = c.toLowerCase().replace(/\s+/g, ' '); if (!vistos.has(k)) vistos.set(k, c); });
+  return [...vistos.values()].sort((a, b) => a.localeCompare(b));
 }
+function cobCli(nombre) { const k = String(nombre || '').trim().toLowerCase(); return (S.cob || []).find(c => c.nombre.toLowerCase() === k) || null; }
 function entUltimo(cli) { // último lugar / horario usado para ese cliente
   const xs = entVivas().filter(e => e.cliente && e.cliente.toLowerCase() === String(cli).trim().toLowerCase()).sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
   return xs[0] || null;
@@ -709,6 +733,7 @@ function tabEntregas() {
       h += `<div class="ev"><div class="evh"><span>🚐 Viaje ${g.n}</span><span class="mono">${g.pos ? g.pos + ' pos. · ' : ''}${fmt(g.kg)} kg · <span class="tg ${occCls(p)}">${pct(p)}</span></span></div>${barra(p)}
         ${g.list.map(e => `<div class="er ${e.estado === 'entregada' ? 'ok' : e.estado === 'cancelada' ? 'canc' : ''}" data-src="entx" data-id="${esc(e.id)}">
           <b>${esc(e.cliente)}${e.estado === 'entregada' ? ' <span class="tg ok">Entregada</span>' : ''}</b><span class="q">${e.pos ? esc(e.pos) + ' pos · ' : ''}${fmt(e.kg)} kg</span>
+          ${e.oc || e.producto ? `<span class="d">${e.oc ? 'OC ' + esc(e.oc) : ''}${e.oc && e.producto ? ' · ' : ''}${esc(e.producto || '')}</span>` : ''}
           ${e.lugar || e.horario ? `<span class="d">📍 ${esc(e.lugar || '—')}${e.horario ? ` · 🕑 ${esc(e.horario)}` : ''}</span>` : ''}
           ${e.obs ? `<span class="d" style="font-style:italic">📝 ${esc(e.obs)}</span>` : ''}</div>`).join('')}
         <div style="margin-top:8px;text-align:right"><button class="btn sm" onclick="formEnt({fecha:'${d}',viaje:${g.n},cliente:'',pos:'',kg:'',lugar:'',horario:'',obs:'',estado:'programada'})">+ Agregar al viaje ${g.n}</button>${g.n === Math.max(...vs.map(x => x.n)) ? ` <button class="btn sm" onclick="formEnt({fecha:'${d}',viaje:${g.n + 1},cliente:'',pos:'',kg:'',lugar:'',horario:'',obs:'',estado:'programada'})">+ Viaje ${g.n + 1}</button>` : ''}</div></div>`;
@@ -723,7 +748,10 @@ function formEnt(o) {
   modal(o.id ? '📦 Editar entrega' : '📦 Nueva entrega · Eugenio', `
     <div class="f"><label>Fecha</label><input type="date" id="e_f" value="${esc(o.fecha)}"></div>
     <div class="f"><label>Viaje del día</label><select id="e_v">${Array.from({ length: nViajes }, (_, i) => i + 1).map(n => `<option value="${n}" ${+o.viaje === n ? 'selected' : ''}>Viaje ${n}</option>`).join('')}</select><span class="h">Si hace 2 viajes en el día, separalos acá</span></div>
-    <div class="f w"><label>Cliente</label><input id="e_c" list="e_cl" value="${esc(o.cliente || '')}" onchange="entAuto()" placeholder="Nombre del cliente"><datalist id="e_cl">${clis.map(c => `<option value="${esc(c)}">`).join('')}</datalist></div>
+    <div class="f w"><label style="display:flex;justify-content:space-between;align-items:center">Cliente <button type="button" class="btn sm" onclick="epPicker()" ${S.ep ? '' : 'disabled title="Sin conexión con Estadopedidos"'}>📋 Traer de Estadopedidos</button></label><input id="e_c" list="e_cl" value="${esc(o.cliente || '')}" onchange="entAuto()" placeholder="Nombre del cliente (de Cobranzas, Estadopedidos o escribilo)"><datalist id="e_cl">${clis.map(c => `<option value="${esc(c)}">`).join('')}</datalist><span class="h" id="e_ch"></span></div>
+    <div class="w" id="e_ep" style="width:100%"></div>
+    <div class="f"><label>OC (opcional)</label><input id="e_oc" value="${esc(o.oc || '')}" placeholder="Nº de OC"></div>
+    <div class="f"><label>Producto (opcional)</label><input id="e_pr" value="${esc(o.producto || '')}" placeholder="Ej: F40, PET 321×300"></div>
     <div class="f"><label>Posiciones</label><input type="number" min="0" step="1" id="e_p" value="${esc(o.pos || '')}"></div>
     <div class="f"><label>Kg</label><input type="number" min="0" step="1" id="e_k" value="${esc(o.kg || '')}" oninput="entCalc()"></div>
     <div class="f w"><label>Lugar de entrega</label><input id="e_l" list="e_ll" value="${esc(o.lugar || '')}" placeholder="Dirección / depósito"><datalist id="e_ll">${lugares.map(c => `<option value="${esc(c)}">`).join('')}</datalist></div>
@@ -732,16 +760,41 @@ function formEnt(o) {
     <div class="f w"><label>Observaciones</label><textarea id="e_o" rows="2" placeholder="Ej: llamar antes, pedir remito firmado, descarga con autoelevador…">${esc(o.obs || '')}</textarea></div>
     <div class="info" id="e_info"></div>`,
     `<div>${o.id ? `<button class="btn bad" onclick="borrarEnt()">🗑 Borrar</button>` : ''}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="cerrar()">Cancelar</button>${o.id ? '' : `<button class="btn" onclick="guardarEnt(true)">💾 Guardar y cargar otra</button>`}<button class="btn pri" onclick="guardarEnt()">💾 Guardar</button></div>`);
-  entCalc();
+  entCalc(); entHint();
 }
-function entAuto() { const u = entUltimo(v('e_c')); if (!u) return; if (!vt('e_l') && u.lugar) $('e_l').value = u.lugar; if (!vt('e_h') && u.horario) $('e_h').value = u.horario; entCalc(); }
+function entAuto() { entHint(); const u = entUltimo(v('e_c')); if (!u) return; if (!vt('e_l') && u.lugar) $('e_l').value = u.lugar; if (!vt('e_h') && u.horario) $('e_h').value = u.horario; entCalc(); }
+function entHint() {
+  const c = vt('e_c'), cb = cobCli(c), n = epPendientes().filter(o => o.cli && o.cli.toLowerCase() === c.toLowerCase()).length;
+  $('e_ch').innerHTML = !c ? '' : [cb ? `✓ Cliente de Cobranzas${cb.tel ? ' · ☎ ' + esc(cb.tel) + (cb.contacto ? ' (' + esc(cb.contacto) + ')' : '') : ''}` : '', n ? `<a href="#" onclick="event.preventDefault();epPicker(true)">${n} OC pendiente${n > 1 ? 's' : ''} en Estadopedidos</a>` : ''].filter(Boolean).join(' · ');
+}
+function epPicker(soloCliente) {
+  const box = $('e_ep'); if (box.innerHTML && !soloCliente) { box.innerHTML = ''; return; }
+  box.innerHTML = `<div style="border:1px solid var(--ent-b);background:var(--ent-l);border-radius:12px;padding:10px">
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><input id="ep_q" placeholder="Buscar cliente, OC o producto" style="flex:1;border:1px solid var(--border2);border-radius:9px;padding:7px 9px" oninput="epLista()" value="${soloCliente ? esc(vt('e_c')) : ''}"><button type="button" class="btn sm" onclick="$('e_ep').innerHTML=''">✕</button></div>
+    <div id="ep_l" style="max-height:260px;overflow:auto;display:flex;flex-direction:column;gap:5px"></div></div>`;
+  epLista();
+}
+function epLista() {
+  const q = (v('ep_q') || '').toLowerCase().trim();
+  const xs = epPendientes().filter(o => !q || [o.cli, o.num, o.art].join(' ').toLowerCase().includes(q)).slice(0, 80);
+  $('ep_l').innerHTML = xs.length ? xs.map(o => `<div onclick="epElegir('${esc(o.id)}')" style="background:#fff;border:1px solid var(--border);border-radius:9px;padding:7px 9px;cursor:pointer;font-size:12.5px">
+      <div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(o.cli)}</b><span class="mono">${fmt(o.saldo)} kg pend.</span></div>
+      <div style="color:var(--text2);font-size:11.5px">OC ${esc(o.num)} · ${esc(o.art)}${o.fe ? ' · entrega ' + dm(o.fe) : ''}${o.fe && o.fe < hoyISO() ? ' <b style="color:var(--bad)">atrasada</b>' : ''}</div></div>`).join('')
+    : '<div class="note" style="padding:6px">No hay OC pendientes que coincidan.</div>';
+}
+function epElegir(id) {
+  const o = epPendientes().find(x => x.id === id); if (!o) return;
+  $('e_c').value = o.cli; $('e_oc').value = o.num; $('e_pr').value = o.art; $('e_k').value = Math.round(o.saldo);
+  ED.epOcId = o.id; $('e_ep').innerHTML = ''; entAuto(); entCalc();
+  toast('Cargado desde Estadopedidos · ajustá los kg si es entrega parcial');
+}
 function entCalc() {
   const f = v('e_f'), n = +v('e_v') || 1, g = entViajesDia(f).find(x => x.n === n), otros = g ? g.list.filter(e => e.id !== ED.id && e.estado !== 'cancelada') : [];
   const kg = otros.reduce((s, e) => s + (+e.kg || 0), 0) + (+v('e_k') || 0), c = caps().Eugenio || { cap: 2000, u: 'kg' }, p = c.cap ? kg / c.cap : null;
   $('e_info').innerHTML = `Viaje ${n} del ${dm(f)}: ${otros.length} entrega${otros.length === 1 ? '' : 's'} más · total <b>${fmt(kg)} kg</b> de ${capTxt('Eugenio')} → <b style="color:${occCol(p)}">${pct(p)}</b>${p > 1 ? ' · <b style="color:var(--bad)">se pasa de la capacidad</b>' : ''}${barra(p)}`;
 }
 async function guardarEnt(otra) {
-  const o = Object.assign({}, ED, { fecha: v('e_f'), viaje: +v('e_v') || 1, cliente: vt('e_c'), pos: +v('e_p') || '', kg: +v('e_k') || '', lugar: vt('e_l'), horario: vt('e_h'), obs: vt('e_o'), estado: v('e_s'), mod: nowISO() });
+  const o = Object.assign({}, ED, { oc: vt('e_oc'), producto: vt('e_pr'), fecha: v('e_f'), viaje: +v('e_v') || 1, cliente: vt('e_c'), pos: +v('e_p') || '', kg: +v('e_k') || '', lugar: vt('e_l'), horario: vt('e_h'), obs: vt('e_o'), estado: v('e_s'), mod: nowISO() });
   if (!o.fecha) return toast('Falta la fecha', true);
   if (!o.cliente) return toast('Falta el cliente', true);
   if (!o.kg && !o.pos) return toast('Poné los kg o las posiciones', true);
@@ -768,7 +821,7 @@ function entWhats(f) {
   let t = `*Entregas Eugenio · ${DIASL[dow(f)]} ${dm(f)}*\n`;
   entViajesDia(f).forEach(g => {
     t += `\n*Viaje ${g.n}* (${g.pos ? g.pos + ' pos · ' : ''}${fmt(g.kg)} kg)\n`;
-    g.list.filter(e => e.estado !== 'cancelada').forEach((e, i) => { t += `${i + 1}. *${e.cliente}* — ${e.pos ? e.pos + ' pos · ' : ''}${fmt(e.kg)} kg\n   📍 ${e.lugar || '—'}${e.horario ? '\n   🕑 ' + e.horario : ''}${e.obs ? '\n   📝 ' + e.obs : ''}\n`; });
+    g.list.filter(e => e.estado !== 'cancelada').forEach((e, i) => { t += `${i + 1}. *${e.cliente}* — ${e.pos ? e.pos + ' pos · ' : ''}${fmt(e.kg)} kg${e.oc ? ' · OC ' + e.oc : ''}${e.producto ? ' · ' + e.producto : ''}\n   📍 ${e.lugar || '—'}${e.horario ? '\n   🕑 ' + e.horario : ''}${e.obs ? '\n   📝 ' + e.obs : ''}\n`; });
   });
   const fin = () => toast('Copiado — pegalo en WhatsApp');
   if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(fin, () => prompt('Copiá el texto:', t)); else prompt('Copiá el texto:', t);
@@ -789,7 +842,7 @@ async function hojaRuta(f) {
     doc.setFillColor(243, 244, 246); doc.rect(M, y, W - 2 * M, 6, 'F'); doc.setFontSize(7); doc.setTextColor(107, 114, 128); hdr.forEach((t, i) => doc.text(t.toUpperCase(), C[i] + 1.5, y + 4)); y += 6;
     vivas.forEach((e, i) => {
       doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
-      const cl = doc.splitTextToSize(e.cliente, 42), lu = doc.splitTextToSize(e.lugar || '—', 58), ho = doc.splitTextToSize(e.horario || '—', 26), ob = e.obs ? doc.splitTextToSize('Obs.: ' + e.obs, W - 2 * M - 12) : [];
+      const cl = doc.splitTextToSize(e.cliente, 42).concat(e.oc || e.producto ? doc.splitTextToSize([e.oc ? 'OC ' + e.oc : '', e.producto || ''].filter(Boolean).join(' · '), 42) : []), lu = doc.splitTextToSize(e.lugar || '—', 58), ho = doc.splitTextToSize(e.horario || '—', 26), ob = e.obs ? doc.splitTextToSize('Obs.: ' + e.obs, W - 2 * M - 12) : [];
       const h = Math.max(cl.length, lu.length, ho.length) * 3.8 + ob.length * 3.6 + 5;
       if (y + h > H - 12) { doc.addPage(); y = 14; }
       doc.setTextColor(31, 41, 55); doc.setFont('helvetica', 'bold'); doc.text(String(i + 1), C[0] + 1.5, y + 4.5); doc.text(cl, C[1] + 1.5, y + 4.5);
