@@ -8,6 +8,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icon-cronograma-192.png">
 <link rel="apple-touch-icon" href="icon-cronograma-192.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -222,6 +223,7 @@ table.t tr.cl{cursor:pointer}table.t tr.cl:hover td{background:#fafafa}
 <body>
 <header>
   <img src="logo-winflex.png" alt="Winflex">
+  <img src="icon-cronograma-192.png" alt="" style="height:38px;border-radius:10px">
   <div>
     <h1>Cronograma General</h1>
     <div class="sub">Termoformado · PET Chivilcoy · Laminado y Refilado · Viajes <span class="mono" id="ver"></span></div>
@@ -235,7 +237,7 @@ table.t tr.cl{cursor:pointer}table.t tr.cl:hover td{background:#fafafa}
 
 <script>
 'use strict';
-const VERSION = 'v2.0';
+const VERSION = 'v2.1';
 document.getElementById('ver').textContent = '· ' + VERSION;
 
 /* ═════════ CONEXIONES (las mismas que usan las apps) ═════════ */
@@ -501,6 +503,7 @@ function tabCrono() {
     <button class="btn via" onclick="nuevo('via','${dflt}')">🚚 Nuevo viaje</button>
     <button class="btn pri" onclick="nuevo(null,'${dflt}')">＋ Agregar</button>
     <button class="btn" onclick="whatsapp()">📋 WhatsApp</button>
+    <button class="btn" onclick="pdfSemana()">📄 PDF</button>
     <button class="btn ic" onclick="window.print()" title="Imprimir">🖨</button>
   </div>
   <div class="bar" style="margin-top:-4px"><div class="chips">${AREAS.map(a => `<span class="fchip ${S.ocultas.includes(a.id) ? 'off' : ''}" onclick="toggleArea('${a.id}')"><i style="background:${a.col}"></i>${a.nom}</span>`).join('')}</div>
@@ -578,7 +581,7 @@ function tabAnalisis() {
   const kpi = (val, l, s, col) => `<div class="kpi"><div class="v" style="color:${col || 'var(--text)'}">${val}</div><div class="l">${l}</div>${s ? `<div class="s">${s}</div>` : ''}</div>`;
   let h = `<div class="hero via"><div><div class="s">${PERS[S.per]} · ${dm(d1)} al ${dm(d2)}</div><div class="t">Análisis de viajes · qué tan llenos van los camiones</div></div>
     <div class="r"><div><small>Ocupación promedio</small><b>${pct(prom(oTot))}</b></div></div></div>
-    <div class="bar"><div class="seg">${Object.keys(PERS).map(p => `<button class="${S.per === p ? 'on' : ''}" onclick="setPer('${p}')">${PERS[p]}</button>`).join('')}</div><span style="flex:1"></span><button class="btn" onclick="formCaps()">⚙ Capacidades</button></div>`;
+    <div class="bar"><div class="seg">${Object.keys(PERS).map(p => `<button class="${S.per === p ? 'on' : ''}" onclick="setPer('${p}')">${PERS[p]}</button>`).join('')}</div><span style="flex:1"></span><button class="btn" onclick="pdfAnalisis()">📄 PDF</button><button class="btn" onclick="formCaps()">⚙ Capacidades</button></div>`;
   if (S.err.via) return h + `<div class="info">Sin conexión con viajes: ${esc(S.err.via)}</div>`;
   h += `<div class="kpis">
     ${kpi(vs.length, 'Viajes', sinCerrar ? `${sinCerrar} sin marcar realizado` : 'todos cerrados')}
@@ -626,6 +629,165 @@ function formCaps() {
 async function guardarCaps() {
   const nc = {}; document.querySelectorAll('.capi').forEach(i => { const t = i.getAttribute('data-t'); nc[t] = { cap: +i.value || 0, u: document.querySelector(`.capu[data-t="${t}"]`).value }; });
   await escribir('Viajes', () => viaWrite(d => { d.capacidades = nc; }));
+}
+
+
+/* ═════════ PDF ═════════ */
+let LOGO_DATA = null;
+async function logoData() {
+  if (LOGO_DATA) return LOGO_DATA;
+  try { const b = await (await fetch('icon-cronograma-192.png')).blob(); LOGO_DATA = await new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(b); }); } catch (_) { LOGO_DATA = ''; }
+  return LOGO_DATA;
+}
+const RGB = { via: [109, 79, 194], pet: [37, 99, 235], ter: [15, 138, 95], lam: [194, 101, 15], ref: [14, 138, 138], evt: [120, 113, 108] };
+const RGBL = { via: [243, 239, 252], pet: [238, 244, 255], ter: [235, 248, 241], lam: [253, 243, 231], ref: [232, 246, 246], evt: [245, 245, 244] };
+const occRGB = p => p == null ? [148, 163, 184] : p >= .85 ? [14, 122, 73] : p >= .6 ? [180, 130, 20] : [180, 35, 24];
+function pdfNuevo(orient) {
+  if (!window.jspdf) { toast('No se pudo cargar el generador de PDF (revisá internet)', true); return null; }
+  const doc = new window.jspdf.jsPDF({ orientation: orient || 'landscape', unit: 'mm', format: 'a4' });
+  doc.setFont('helvetica');
+  return doc;
+}
+function pdfEncabezado(doc, titulo, sub, color, logo) {
+  const W = doc.internal.pageSize.getWidth();
+  doc.setFillColor(...(color || [15, 138, 95])); doc.roundedRect(8, 7, W - 16, 17, 3, 3, 'F');
+  if (logo) { try { doc.addImage(logo, 'PNG', 10.5, 8.8, 13.4, 13.4); } catch (_) {} }
+  doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.text(titulo, logo ? 27 : 13, 14.3);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.text(sub, logo ? 27 : 13, 19.6);
+  doc.setFontSize(8); doc.text('WINFLEX S.A.', W - 12, 14.3, { align: 'right' });
+  const t = new Date(); doc.text(`Emitido ${pad2(t.getDate())}/${pad2(t.getMonth() + 1)}/${t.getFullYear()} ${pad2(t.getHours())}:${pad2(t.getMinutes())}`, W - 12, 19.6, { align: 'right' });
+  doc.setTextColor(31, 41, 55);
+}
+function pdfPie(doc) {
+  const n = doc.getNumberOfPages(), W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
+  for (let i = 1; i <= n; i++) { doc.setPage(i); doc.setFontSize(7); doc.setTextColor(156, 163, 175); doc.text('Cronograma General · Winflex', 10, H - 5); doc.text(`Página ${i} de ${n}`, W - 10, H - 5, { align: 'right' }); }
+}
+function pdfLineas(it) {
+  // título + renglones de cada tarjeta, igual a lo que se ve en pantalla
+  const o = it.o;
+  if (it.src === 'via') { const x = o[it.leg] || {}, u = legUso(o, it.leg), p = legOcc(o, it.leg);
+    return { k: 'via', t: `${o.transporte || '—'} · ${it.leg === 'ida' ? 'IDA a Lanús' : 'VUELTA a Chivilcoy'}${x.hora ? ' ' + x.hora : ''}`, l: [x.carga || 'Vacío', `${u ? uTxt(o.transporte, u) + ' · ' : ''}${pct(p)} ocupado${o.estado === 'cancelado' ? ' · CANCELADO' : o.estado === 'realizado' ? ' · realizado' : ''}`], occ: p }; }
+  if (it.src === 'pet') { const p = petPed(o.pedidoId);
+    if (!p && o.proy) return { k: 'pet', proy: 1, t: `${o.pCli || '—'} (proyectada)`, l: [o.pDesc || 'sin pedido', `${fmt(o.kgPlan)} kg`].concat(o.notas ? [o.notas] : []) };
+    return { k: 'pet', t: p ? p.cliente : 'Pedido no encontrado', l: p ? [`OP ${p.nroOP || '-'} · ${p.ancho || '-'}x${p.espesor || '-'}${p.color ? ' · ' + p.color : ''}`, `${fmt(o.kgPlan)} kg · ${(ST_PET[o.status || 'pendiente'] || '').slice(2)}`].concat(o.notas ? [o.notas] : []) : [] }; }
+  if (it.src === 'ter') { const ev = TER_EVT[o.prod];
+    return { k: ev ? 'evt' : 'ter', t: `${ev ? ev.lbl : o.prod} · turno ${o.turno}`, l: [].concat(o.meta ? [o.meta + ' pallets'] : [], (o.operarios || []).length ? [o.operarios.join(', ')] : [], o.obs ? [o.obs] : []) }; }
+  if (it.src === 'lam') { const oc = o.ocId ? lamOc(o.ocId) : null, cls = AREA[it.area].cls;
+    return { k: o.ocId || o.proy ? cls : 'evt', proy: o.proy && !o.ocId, t: oc ? oc.cliente : o.proy ? `${o.pCli || '—'} (proyectada)` : (o.nota || 'Tarea'),
+      l: [].concat(oc ? [`OC ${oc.nro}${oc.desc ? ' · ' + oc.desc : ''}`] : o.proy ? [o.pDesc || 'sin OC'] : [], [`${o.turno || ''}${o.kgObj ? ' · ' + fmt(o.kgObj) + ' kg' : ''}`], o.operario ? [o.operario] : [], (oc || o.proy) && o.nota ? [o.nota] : []) }; }
+  return { k: 'evt', t: '', l: [] };
+}
+async function pdfSemana() {
+  const doc = pdfNuevo('landscape'); if (!doc) return;
+  const logo = await logoData();
+  const ds = dias(), hoy = hoyISO(), W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
+  const M = 8, gap = 2.2, colW = (W - 2 * M - gap * 6) / 7, top = 37, bottom = H - 10, pad = 2;
+  // bloques por día (etiqueta de área + tarjetas)
+  const cols = ds.map(d => {
+    const bl = [];
+    areasVis().forEach(a => {
+      const its = items(d, a.id); if (!its.length) return;
+      bl.push({ tipo: 'lbl', txt: a.nom.toUpperCase(), k: a.cls, h: 4.6 });
+      its.forEach(it => {
+        const c = pdfLineas(it); doc.setFontSize(7.6); doc.setFont('helvetica', 'bold');
+        const tl = doc.splitTextToSize(c.t, colW - 2 * pad - 2); doc.setFont('helvetica', 'normal'); doc.setFontSize(6.9);
+        const ll = c.l.filter(Boolean).flatMap(x => doc.splitTextToSize(String(x), colW - 2 * pad - 2));
+        c.tl = tl; c.ll = ll; c.h = 2.6 + tl.length * 3.2 + ll.length * 2.9 + (c.occ !== undefined ? 2.2 : 0) + 1.4;
+        bl.push({ tipo: 'it', c, h: c.h + 1.6 });
+      });
+    });
+    return bl;
+  });
+  const sub = `Semana del ${dLargo(ds[0])} al ${dLargo(ds[6])} ${ds[6].slice(0, 4)} · ${areasVis().map(a => a.nom).join(', ')}`;
+  let pagina = 0;
+  while (pagina === 0 || cols.some(c => c.length)) {
+    if (pagina) doc.addPage();
+    pdfEncabezado(doc, 'Cronograma General · Lanús y Chivilcoy', sub + (pagina ? ' · (continuación)' : ''), [15, 138, 95], logo);
+    ds.forEach((d, i) => {
+      const x = M + i * (colW + gap);
+      const esHoy = d === hoy;
+      doc.setDrawColor(...(esHoy ? [22, 163, 74] : [229, 231, 235])); doc.setLineWidth(esHoy ? .6 : .25);
+      doc.setFillColor(255, 255, 255); doc.roundedRect(x, 28, colW, bottom - 28, 2.5, 2.5, 'FD');
+      doc.setFillColor(...(esHoy ? [232, 247, 239] : dow(d) === 0 ? [245, 245, 245] : [249, 250, 251])); doc.roundedRect(x + .3, 28.3, colW - .6, 7.2, 2.3, 2.3, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8.6); doc.setTextColor(...(esHoy ? [15, 138, 95] : [31, 41, 55]));
+      doc.text(dLargo(d) + (esHoy ? '  · HOY' : ''), x + 3, 33.2);
+      let y = top + 1;
+      const q = cols[i];
+      if (!pagina && !q.length) { doc.setFont('helvetica', 'italic'); doc.setFontSize(7); doc.setTextColor(156, 163, 175); doc.text('Sin nada cargado', x + colW / 2, y + 6, { align: 'center' }); }
+      while (q.length && y + q[0].h <= bottom - 1) {
+        const b = q.shift();
+        if (b.tipo === 'lbl') { doc.setFont('helvetica', 'bold'); doc.setFontSize(6.4); doc.setTextColor(...RGB[b.k]); doc.text(b.txt, x + pad + .5, y + 3); y += b.h; continue; }
+        const c = b.c, bx = x + pad, bw = colW - 2 * pad;
+        doc.setFillColor(...(c.proy ? [255, 255, 255] : RGBL[c.k])); doc.setDrawColor(...RGB[c.k]); doc.setLineWidth(.25);
+        if (c.proy) doc.setLineDashPattern([.8, .6], 0);
+        doc.roundedRect(bx, y, bw, c.h, 1.6, 1.6, 'FD'); doc.setLineDashPattern([], 0);
+        doc.setFillColor(...RGB[c.k]); doc.rect(bx, y + 1.2, .8, c.h - 2.4, 'F');
+        let yy = y + 3.6;
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(7.6); doc.setTextColor(31, 41, 55); c.tl.forEach(t => { doc.text(t, bx + 2.2, yy); yy += 3.2; });
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(6.9); doc.setTextColor(75, 85, 99); c.ll.forEach(t => { doc.text(t, bx + 2.2, yy - .3); yy += 2.9; });
+        if (c.occ !== undefined) { const bw2 = bw - 4.4; doc.setFillColor(229, 231, 235); doc.roundedRect(bx + 2.2, yy - 1.2, bw2, 1.3, .6, .6, 'F'); if (c.occ) { doc.setFillColor(...occRGB(c.occ)); doc.roundedRect(bx + 2.2, yy - 1.2, Math.max(1, bw2 * Math.min(1, c.occ)), 1.3, .6, .6, 'F'); } }
+        y += b.h;
+      }
+    });
+    pagina++;
+    if (pagina > 20) break;
+  }
+  pdfPie(doc);
+  doc.save(`cronograma-general_${ds[0]}.pdf`);
+  toast('PDF del cronograma descargado');
+}
+async function pdfAnalisis() {
+  const doc = pdfNuevo('portrait'); if (!doc) return;
+  const logo = await logoData();
+  const [d1, d2] = rango(S.per), hoy = hoyISO(), W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 10;
+  const vs = viajesVivos().filter(v => v.estado !== 'cancelado' && fechaViaje(v) >= d1 && fechaViaje(v) <= d2 && fechaViaje(v) <= hoy && caps()[v.transporte]).sort((a, b) => fechaViaje(a).localeCompare(fechaViaje(b)));
+  const prom = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : null;
+  const tot = v => (legOcc(v, 'ida') + legOcc(v, 'vuelta')) / 2;
+  pdfEncabezado(doc, 'Análisis de viajes · Chivilcoy ↔ Lanús'.replace('↔', '-'), `${PERS[S.per]} · ${dm(d1)}/${d1.slice(0, 4)} al ${dm(d2)}/${d2.slice(0, 4)}`, [109, 79, 194], logo);
+  // KPIs
+  const vac = vs.filter(v => !legUso(v, 'vuelta') && !(v.vuelta && v.vuelta.carga)).length;
+  const K = [[String(vs.length), 'Viajes', null], [pct(prom(vs.map(tot))), 'Ocupación total', prom(vs.map(tot))], [pct(prom(vs.map(v => legOcc(v, 'ida')))), 'Ocupación ida', prom(vs.map(v => legOcc(v, 'ida')))], [pct(prom(vs.map(v => legOcc(v, 'vuelta')))), 'Ocupación vuelta', prom(vs.map(v => legOcc(v, 'vuelta')))], [String(vac), 'Vueltas vacías', null]];
+  const kw = (W - 2 * M - 4 * 3) / 5; let y = 30;
+  K.forEach((k, i) => { const x = M + i * (kw + 3); doc.setDrawColor(229, 231, 235); doc.setFillColor(255, 255, 255); doc.setLineWidth(.25); doc.roundedRect(x, y, kw, 17, 2.5, 2.5, 'FD');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.setTextColor(...(k[2] != null ? occRGB(k[2]) : [31, 41, 55])); doc.text(k[0], x + 3.5, y + 8.5);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(107, 114, 128); doc.text(k[1], x + 3.5, y + 13.5); });
+  y += 24;
+  // por transporte
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(15, 138, 95); doc.text('POR TRANSPORTE', M, y); y += 3;
+  const ts = Object.keys(caps()), tw = (W - 2 * M - (ts.length - 1) * 3) / ts.length;
+  ts.forEach((t, i) => {
+    const xs = vs.filter(v => v.transporte === t), c = caps()[t], x = M + i * (tw + 3);
+    const pt = prom(xs.map(tot)), pi = prom(xs.map(v => legOcc(v, 'ida'))), pv = prom(xs.map(v => legOcc(v, 'vuelta')));
+    const usado = xs.reduce((s, v) => s + legUso(v, 'ida') + legUso(v, 'vuelta'), 0), disp = xs.length * 2 * c.cap;
+    doc.setDrawColor(229, 231, 235); doc.setFillColor(255, 255, 255); doc.roundedRect(x, y, tw, 42, 2.5, 2.5, 'FD');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(31, 41, 55); doc.text(t, x + 4, y + 7);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(156, 163, 175); doc.text(`${capTxt(t)} por tramo · ${xs.length} viaje${xs.length === 1 ? '' : 's'}`, x + 4, y + 11.5);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.setTextColor(...occRGB(pt)); doc.text(pct(pt), x + 4, y + 21);
+    const fila = (lbl, val, yy, col) => { doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(107, 114, 128); doc.text(lbl, x + 4, yy); doc.setFont('helvetica', 'bold'); doc.setTextColor(...(col || [31, 41, 55])); doc.text(val, x + tw - 4, yy, { align: 'right' }); };
+    fila('Ida', pct(pi), y + 27); fila('Vuelta', pct(pv), y + 31); fila('Movido / disponible', `${uTxt(t, usado)} de ${uTxt(t, disp)}`, y + 35); fila('Lugar sin usar', uTxt(t, Math.max(0, disp - usado)), y + 39, disp - usado > 0 ? [180, 35, 24] : [14, 122, 73]);
+  });
+  y += 50;
+  // detalle
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(15, 138, 95); doc.text('DETALLE DE VIAJES', M, y); y += 3;
+  const C = [M, M + 22, M + 42, M + 92, M + 112, M + 162, M + 182], hdr = ['Fecha', 'Transporte', 'Ida · lleva', 'Ocup.', 'Vuelta · trae', 'Ocup.', 'Total'];
+  const cab = () => { doc.setFillColor(243, 244, 246); doc.rect(M, y, W - 2 * M, 6, 'F'); doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(107, 114, 128); hdr.forEach((h, i) => doc.text(h.toUpperCase(), C[i] + 1.5, y + 4)); y += 6; };
+  cab();
+  if (!vs.length) { doc.setFont('helvetica', 'italic'); doc.setFontSize(8); doc.text('No hay viajes en el período.', M + 2, y + 6); }
+  vs.forEach(v => {
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
+    const li = doc.splitTextToSize(`${(v.ida && v.ida.carga) || '—'} (${uTxt(v.transporte, legUso(v, 'ida'))})`, 48), lv = doc.splitTextToSize(`${(v.vuelta && v.vuelta.carga) || (legUso(v, 'vuelta') ? '' : 'Vacío')} (${uTxt(v.transporte, legUso(v, 'vuelta'))})`, 48);
+    const h = Math.max(li.length, lv.length) * 3.3 + 3;
+    if (y + h > H - 12) { doc.addPage(); y = 14; cab(); }
+    doc.setTextColor(31, 41, 55);
+    doc.text(dLargo(fechaViaje(v)) + (v.estado !== 'realizado' ? ' *' : ''), C[0] + 1.5, y + 4); doc.setFont('helvetica', 'bold'); doc.text(v.transporte, C[1] + 1.5, y + 4); doc.setFont('helvetica', 'normal');
+    doc.text(li, C[2] + 1.5, y + 4); doc.text(lv, C[4] + 1.5, y + 4);
+    [[legOcc(v, 'ida'), C[3]], [legOcc(v, 'vuelta'), C[5]], [tot(v), C[6]]].forEach(([p, x]) => { doc.setFont('helvetica', 'bold'); doc.setTextColor(...occRGB(p)); doc.text(pct(p), x + 1.5, y + 4); });
+    doc.setDrawColor(243, 244, 246); doc.line(M, y + h, W - M, y + h); y += h;
+  });
+  if (vs.some(v => v.estado !== 'realizado')) { doc.setFont('helvetica', 'italic'); doc.setFontSize(7); doc.setTextColor(156, 163, 175); doc.text('* viaje pasado todavía sin marcar como realizado', M, Math.min(y + 5, H - 9)); }
+  pdfPie(doc);
+  doc.save(`analisis-viajes_${d1}_${d2}.pdf`);
+  toast('PDF del análisis descargado');
 }
 
 /* ═════════ WHATSAPP ═════════ */
