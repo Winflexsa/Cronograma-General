@@ -17,6 +17,7 @@
   --g:#16a34a;--gd:#0f8a5f;--gdd:#0a5e38;--gl:#e8f7ef;--gl2:#ccebd9;
   --ok:#0e7a49;--okl:#e4f6ec;--mid:#a16207;--midl:#fdf3dc;--bad:#b42318;--badl:#fdecea;
   --via:#6d4fc2;--via-l:#f3effc;--via-b:#dcd2f5;
+  --ent:#be185d;--ent-l:#fdf0f6;--ent-b:#f5cfe0;
   --pet:#2563eb;--pet-l:#eef4ff;--pet-b:#cfe0fb;
   --ter:#0f8a5f;--ter-l:#ebf8f1;--ter-b:#c8eadb;
   --lam:#c2650f;--lam-l:#fdf3e7;--lam-b:#f3dbbd;
@@ -84,7 +85,7 @@ main{padding:18px 24px 40px;max-width:1800px;margin:0 auto}
 .dh{display:flex;justify-content:space-between;align-items:center;padding:11px 12px 10px;border-bottom:1px solid #f0f1f3;border-radius:16px 16px 0 0}
 .dh b{font-size:14px}
 .dh .hb{background:var(--g);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;margin-left:6px;vertical-align:1px}
-.dh .add{background:var(--g);color:#fff;border:0;border-radius:8px;padding:4px 10px;font-weight:700;font-size:12px;cursor:pointer}
+.dh .add{white-space:nowrap;background:var(--g);color:#fff;border:0;border-radius:8px;padding:4px 10px;font-weight:700;font-size:12px;cursor:pointer}
 .dh .add:hover{background:var(--gd)}
 .db{padding:8px 10px 10px;display:flex;flex-direction:column;gap:8px;flex:1}
 .ar{display:flex;flex-direction:column;gap:6px}
@@ -107,6 +108,25 @@ main{padding:18px 24px 40px;max-width:1800px;margin:0 auto}
 .it.lam{background:var(--lam-l);border-color:var(--lam-b)}.it.lam .k{color:var(--lam)}
 .it.ref{background:var(--ref-l);border-color:var(--ref-b)}.it.ref .k{color:var(--ref)}
 .it.via{background:var(--via-l);border-color:var(--via-b)}.it.via .k{color:var(--via)}
+.it.ent{background:var(--ent-l);border-color:var(--ent-b)}.it.ent .k{color:var(--ent)}
+.it .cl{font-size:11px;color:var(--text);margin-top:2px;display:flex;justify-content:space-between;gap:6px}.it .cl span:last-child{color:var(--text2);font-family:var(--mono);white-space:nowrap}
+.hero.ent{background:linear-gradient(120deg,#9d174d 0%,#be185d 60%,#db2777 100%);box-shadow:0 6px 18px rgba(190,24,93,.25)}
+.btn.ent{background:var(--ent);border-color:var(--ent);color:#fff}.btn.ent:hover{filter:brightness(.95)}
+.egrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:12px}
+.ed{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh);overflow:hidden;scroll-margin-top:58px}
+.ed.hoy{border:2px solid var(--ent);box-shadow:0 0 0 4px var(--ent-l),var(--sh)}
+.ed .eh{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid #f0f1f3;flex-wrap:wrap}
+.ed .eh b{font-size:15px}
+.ev{padding:10px 14px;border-top:1px solid #f3f4f6}
+.ev:first-of-type{border-top:none}
+.evh{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--ent)}
+.evh .mono{text-transform:none;letter-spacing:0;font-weight:600;color:var(--text)}
+.er{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 10px;margin-top:7px;border:1px solid var(--ent-b);background:var(--ent-l);border-radius:11px;cursor:pointer}
+.er:hover{box-shadow:var(--sh2)}
+.er b{font-size:13px}.er .q{font-family:var(--mono);font-size:12px;text-align:right;white-space:nowrap}
+.er .d{grid-column:1 / -1;font-size:11.5px;color:var(--text2)}
+.er.ok{background:#f3faf6;border-color:#cdebd9}.er.canc{opacity:.45;text-decoration:line-through}
+.ee{padding:14px;color:var(--text3);font-size:12.5px;font-style:italic;display:flex;justify-content:space-between;align-items:center}
 .it.proy{background:#fff;border:1.5px dashed currentColor}
 .it.pet.proy{color:var(--pet)}.it.lam.proy{color:var(--lam)}.it.ref.proy{color:var(--ref)}
 .it.evt{background:#f5f5f4;border-color:#e7e5e4}
@@ -237,7 +257,7 @@ table.t tr.cl{cursor:pointer}table.t tr.cl:hover td{background:#fafafa}
 
 <script>
 'use strict';
-const VERSION = 'v2.1';
+const VERSION = 'v2.2';
 document.getElementById('ver').textContent = '· ' + VERSION;
 
 /* ═════════ CONEXIONES (las mismas que usan las apps) ═════════ */
@@ -293,6 +313,7 @@ function confirmar(msg, ok) {
 /* ═════════ ÁREAS ═════════ */
 const AREAS = [
   { id: 'via', nom: 'Viajes', sub: 'Chivilcoy ↔ Lanús', cls: 'via', col: 'var(--via)' },
+  { id: 'ent', nom: 'Entregas clientes', sub: 'Eugenio', cls: 'ent', col: 'var(--ent)' },
   { id: 'pet', nom: 'Extrusión PET', sub: 'Chivilcoy', cls: 'pet', col: 'var(--pet)' },
   { id: 'ter', nom: 'Termoformado', sub: 'Lanús', cls: 'ter', col: 'var(--ter)' },
   { id: 'lam', nom: 'Laminadora', sub: 'Lanús', cls: 'lam', col: 'var(--lam)', maq: 'Laminadora' },
@@ -385,6 +406,7 @@ async function cargarGist(conPedidos) {
     const gj = await gistGet();
     S.pet = parseCrono(await gistFile(gj, 'cronograma.json'));
     S.via = parseViajes(await gistFile(gj, 'viajes.json'));
+    S.ent = parseEnt(await gistFile(gj, 'entregas.json'));
     if (conPedidos || !S.petPedidos.length) {
       try {
         const w = JSON.parse(await gistFile(gj, 'winflex.json') || '{}');
@@ -420,6 +442,7 @@ function items(fecha, area) {
     viajesVivos().forEach(v => ['ida', 'vuelta'].forEach(l => { if (v[l] && v[l].fecha === fecha) out.push({ src: 'via', o: v, leg: l }); }));
     out.sort((a, b) => (a.o[a.leg].hora || '').localeCompare(b.o[b.leg].hora || ''));
   }
+  if (area === 'ent') entViajesDia(fecha).forEach(g => out.push({ src: 'ent', o: { id: fecha + '|' + g.n }, fecha, g }));
   if (area === 'pet' && S.pet) {
     const d = S.pet.planificacion[fecha]; const tomb = S.pet.planificacionEliminados || {};
     ((d && d.ops) || []).filter(op => !tomb[op.id]).sort((a, b) => (a.prioridad || 0) - (b.prioridad || 0)).forEach(op => out.push({ src: 'pet', o: op, fecha }));
@@ -447,6 +470,12 @@ function card(it, area) {
       <div class="m">${vacio ? '<i>Vacío</i>' : esc(x.carga || '')}</div>
       <div class="k">${legUso(o, it.leg) ? uTxt(o.transporte, legUso(o, it.leg)) + ' · ' : ''}${pct(p)}${o.estado === 'realizado' ? ' · ✓' : ''}</div>${barra(p)}</div>`;
   }
+  if (it.src === 'ent') {
+    const g = it.g, p = entOcc(g);
+    return `<div class="it ent" ${k}><div class="h"><b>🚐 Viaje ${g.n}</b><span class="tg gr">Eugenio · ${g.list.length} cl.</span></div>
+      ${g.list.map(e => `<div class="cl"><span>${esc(e.cliente)}${e.horario ? ' · ' + esc(e.horario) : ''}${e.estado === 'entregada' ? ' ✓' : ''}</span><span>${e.kg ? fmt(e.kg) + ' kg' : (e.pos ? e.pos + ' pos' : '')}</span></div>`).join('')}
+      <div class="k">${g.pos ? g.pos + ' pos. · ' : ''}${fmt(g.kg)} kg · ${pct(p)}</div>${barra(p)}</div>`;
+  }
   if (it.src === 'pet') {
     const p = petPed(o.pedidoId);
     const real = p ? ((S.petProd[it.fecha] || {})[o.pedidoId] || 0) : 0;
@@ -470,7 +499,7 @@ function card(it, area) {
 }
 
 /* ═════════ RENDER GENERAL ═════════ */
-const TABS = [{ id: 'crono', lbl: '📅 Cronograma' }, { id: 'viajes', lbl: '🚚 Viajes' }, { id: 'anal', lbl: '📊 Análisis de viajes' }];
+const TABS = [{ id: 'crono', lbl: '📅 Cronograma' }, { id: 'viajes', lbl: '🚚 Viajes' }, { id: 'ent', lbl: '📦 Entregas clientes' }, { id: 'anal', lbl: '📊 Análisis de viajes' }];
 function renderSync() {
   const lbl = { via: 'Viajes', pet: 'PET', ter: 'Termo', lam: 'Laminado' };
   $('sync').innerHTML = Object.keys(lbl).map(k => { const e = S.err[k]; return `<span class="sb ${cargando ? 'load' : e ? 'err' : ''}" title="${esc(e)}">${lbl[k]}${e ? ': ' + esc(e) : ''}</span>`; }).join('')
@@ -481,10 +510,10 @@ function render() {
   renderSync();
   $('tabs').innerHTML = TABS.map(t => `<button class="tab ${S.tab === t.id ? 'on' : ''}" onclick="irTab('${t.id}')">${t.lbl}</button>`).join('');
   if (S.err.pet === 'Falta conectar' && !S.lam && !S.ter) { $('app').innerHTML = ''; return renderConexion(); }
-  $('app').innerHTML = S.tab === 'viajes' ? tabViajes() : S.tab === 'anal' ? tabAnalisis() : tabCrono();
+  $('app').innerHTML = S.tab === 'ent' ? tabEntregas() : S.tab === 'viajes' ? tabViajes() : S.tab === 'anal' ? tabAnalisis() : tabCrono();
   if (S.tab === 'crono' && window.innerWidth < 760 && !render._scrolled && ultCarga) { const e = document.querySelector('.day.hoy'); if (e) { render._scrolled = true; setTimeout(() => e.scrollIntoView({ block: 'start' }), 50); } }
 }
-function errArea(id) { const k = id === 'via' ? 'via' : id === 'pet' ? 'pet' : id === 'ter' ? 'ter' : 'lam'; return S.err[k] || ''; }
+function errArea(id) { const k = id === 'via' || id === 'ent' ? 'via' : id === 'pet' ? 'pet' : id === 'ter' ? 'ter' : 'lam'; return S.err[k] || ''; }
 
 /* ═════════ PESTAÑA CRONOGRAMA ═════════ */
 function dias() { return Array.from({ length: 7 }, (_, i) => addD(S.ini, i)); }
@@ -494,7 +523,7 @@ function toggleArea(id) { const i = S.ocultas.indexOf(id); if (i >= 0) S.ocultas
 function tabCrono() {
   const ds = dias(), hoy = hoyISO(), dflt = ds.includes(hoy) ? hoy : ds[0];
   let nProd = 0, nViaj = new Set(), kgPet = 0;
-  ds.forEach(d => { AREAS.forEach(a => items(d, a.id).forEach(it => { if (it.src === 'via') { if (it.o.estado !== 'cancelado') nViaj.add(it.o.id); } else { nProd++; if (it.src === 'pet') kgPet += +it.o.kgPlan || 0; } })); });
+  ds.forEach(d => { AREAS.forEach(a => items(d, a.id).forEach(it => { if (it.src === 'ent') return; if (it.src === 'via') { if (it.o.estado !== 'cancelado') nViaj.add(it.o.id); } else { nProd++; if (it.src === 'pet') kgPet += +it.o.kgPlan || 0; } })); });
   let h = `<div class="hero"><div><div class="s">Semana del ${dLargo(ds[0])} al ${dLargo(ds[6])} ${ds[6].slice(0, 4)}</div><div class="t">Cronograma de planta · Lanús y Chivilcoy</div></div>
     <div class="r"><div><small>Producciones</small><b>${nProd}</b></div><div><small>Kg PET plan.</small><b>${fmt(kgPet)}</b></div><div><small>Viajes</small><b>${nViaj.size}</b></div></div></div>
   <div class="bar">
@@ -514,11 +543,11 @@ function tabCrono() {
       const its = items(d, a.id); if (!its.length) return '';
       return `<div class="ar"><div class="al" style="color:${a.col}"><span>${a.nom}</span><span class="p noprint" title="Agregar" onclick="nuevo('${a.id}','${d}')">＋</span></div>${its.map(it => card(it, a.id)).join('')}</div>`;
     }).join('');
-    const nv = items(d, 'via').length, np = areasVis().filter(a => a.id !== 'via').reduce((s, a) => s + items(d, a.id).length, 0);
+    const nv = items(d, 'via').length, ne = entViajesDia(d).reduce((s, g) => s + g.list.filter(e => e.estado !== 'cancelada').length, 0), np = areasVis().filter(a => a.id !== 'via' && a.id !== 'ent').reduce((s, a) => s + items(d, a.id).length, 0);
     h += `<div class="day ${d === hoy ? 'hoy' : ''} ${dow(d) === 0 ? 'dom' : ''}">
       <div class="dh"><span><b>${dLargo(d)}</b>${d === hoy ? '<span class="hb">HOY</span>' : ''}</span><button class="add" onclick="nuevo(null,'${d}')">+ Agregar</button></div>
       <div class="db">${bloques || '<div class="empty">Sin nada cargado</div>'}</div>
-      <div class="df"><span>${np} producc.</span><span>${nv ? '🚚 ' + nv : ''}</span></div></div>`;
+      <div class="df"><span>${np} producc.</span><span>${ne ? '📦 ' + ne + ' ' : ''}${nv ? '🚚 ' + nv : ''}</span></div></div>`;
   });
   return h + `</div>`;
 }
@@ -632,6 +661,154 @@ async function guardarCaps() {
 }
 
 
+
+/* ═════════ ENTREGAS A CLIENTES (Eugenio) · entregas.json del Gist de PET ═════════ */
+const ST_ENT = { programada: 'Programada', entregada: 'Entregada', cancelada: 'Cancelada' };
+function parseEnt(txt) { let o = {}; try { o = JSON.parse(txt || '{}'); } catch (_) {} return { entregas: o.entregas || [], entregasEliminadas: o.entregasEliminadas || {} }; }
+function entVivas() { return S.ent ? S.ent.entregas.filter(e => !S.ent.entregasEliminadas[e.id]) : []; }
+function entViajesDia(f) {
+  const xs = entVivas().filter(e => e.fecha === f), g = {};
+  xs.forEach(e => { const n = +e.viaje || 1; (g[n] = g[n] || []).push(e); });
+  return Object.keys(g).sort((a, b) => a - b).map(n => {
+    const list = g[n].sort((a, b) => (+a.orden || 0) - (+b.orden || 0) || (a.horario || '').localeCompare(b.horario || '')), vivas = list.filter(e => e.estado !== 'cancelada');
+    return { n: +n, list, kg: vivas.reduce((s, e) => s + (+e.kg || 0), 0), pos: vivas.reduce((s, e) => s + (+e.pos || 0), 0) };
+  });
+}
+function entOcc(g) { const c = caps().Eugenio || { u: 'kg', cap: 2000 }; if (!c.cap) return null; return (c.u === 'kg' ? g.kg : g.pos) / c.cap; }
+function entViajeLibre(f) { const vs = entViajesDia(f); return vs.length ? vs[vs.length - 1].n : 1; }
+function entClientes() {
+  const set = new Set();
+  S.petPedidos.forEach(p => p.cliente && set.add(String(p.cliente).trim()));
+  ((S.lam && S.lam.ocs) || []).forEach(o => o.cliente && set.add(String(o.cliente).trim()));
+  ((S.ter && S.ter.pedidos) || []).forEach(p => p.cliente && set.add(String(p.cliente).trim()));
+  entVivas().forEach(e => e.cliente && set.add(e.cliente));
+  return [...set].sort((a, b) => a.localeCompare(b));
+}
+function entUltimo(cli) { // último lugar / horario usado para ese cliente
+  const xs = entVivas().filter(e => e.cliente && e.cliente.toLowerCase() === String(cli).trim().toLowerCase()).sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
+  return xs[0] || null;
+}
+function tabEntregas() {
+  const ds = dias(), hoy = hoyISO();
+  let nE = 0, kg = 0, nV = 0; const occs = [];
+  ds.forEach(d => entViajesDia(d).forEach(g => { nV++; nE += g.list.filter(e => e.estado !== 'cancelada').length; kg += g.kg; occs.push(entOcc(g)); }));
+  const prom = occs.length ? occs.reduce((s, x) => s + x, 0) / occs.length : null;
+  let h = `<div class="hero ent"><div><div class="s">Semana del ${dLargo(ds[0])} al ${dLargo(ds[6])} · camión de Eugenio (${capTxt('Eugenio')})</div><div class="t">Entregas a clientes</div></div>
+    <div class="r"><div><small>Entregas</small><b>${nE}</b></div><div><small>Viajes</small><b>${nV}</b></div><div><small>Kg</small><b>${fmt(kg)}</b></div><div><small>Ocupación prom.</small><b>${pct(prom)}</b></div></div></div>
+    <div class="bar"><button class="btn ic" onclick="semana(-1)">◀</button><button class="btn" onclick="semana(0)">Hoy</button><button class="btn ic" onclick="semana(1)">▶</button>
+    <span style="flex:1"></span><button class="btn ent" onclick="nuevo('ent','${ds.includes(hoy) ? hoy : ds[0]}')">📦 Nueva entrega</button></div>`;
+  if (S.err.via) return h + `<div class="info">Sin conexión: ${esc(S.err.via)}</div>`;
+  h += `<div class="egrid">`;
+  ds.forEach(d => {
+    const vs = entViajesDia(d);
+    h += `<div class="ed ${d === hoy ? 'hoy' : ''}" id="ed-${d}"><div class="eh"><span><b>${dLargo(d)}</b>${d === hoy ? ' <span class="tg" style="background:var(--ent);color:#fff">HOY</span>' : ''}</span>
+      <span style="display:flex;gap:6px;flex-wrap:wrap">${vs.length ? `<button class="btn sm" onclick="hojaRuta('${d}')">📄 Hoja de ruta</button><button class="btn sm" onclick="entWhats('${d}')">📋 WhatsApp</button>` : ''}<button class="btn sm ent" onclick="formEnt({fecha:'${d}',viaje:entViajeLibre('${d}'),cliente:'',pos:'',kg:'',lugar:'',horario:'',obs:'',estado:'programada'})">+ Entrega</button></span></div>`;
+    if (!vs.length) h += `<div class="ee"><span>Sin entregas</span></div>`;
+    vs.forEach(g => {
+      const p = entOcc(g);
+      h += `<div class="ev"><div class="evh"><span>🚐 Viaje ${g.n}</span><span class="mono">${g.pos ? g.pos + ' pos. · ' : ''}${fmt(g.kg)} kg · <span class="tg ${occCls(p)}">${pct(p)}</span></span></div>${barra(p)}
+        ${g.list.map(e => `<div class="er ${e.estado === 'entregada' ? 'ok' : e.estado === 'cancelada' ? 'canc' : ''}" data-src="entx" data-id="${esc(e.id)}">
+          <b>${esc(e.cliente)}${e.estado === 'entregada' ? ' <span class="tg ok">Entregada</span>' : ''}</b><span class="q">${e.pos ? esc(e.pos) + ' pos · ' : ''}${fmt(e.kg)} kg</span>
+          ${e.lugar || e.horario ? `<span class="d">📍 ${esc(e.lugar || '—')}${e.horario ? ` · 🕑 ${esc(e.horario)}` : ''}</span>` : ''}
+          ${e.obs ? `<span class="d" style="font-style:italic">📝 ${esc(e.obs)}</span>` : ''}</div>`).join('')}
+        <div style="margin-top:8px;text-align:right"><button class="btn sm" onclick="formEnt({fecha:'${d}',viaje:${g.n},cliente:'',pos:'',kg:'',lugar:'',horario:'',obs:'',estado:'programada'})">+ Agregar al viaje ${g.n}</button>${g.n === Math.max(...vs.map(x => x.n)) ? ` <button class="btn sm" onclick="formEnt({fecha:'${d}',viaje:${g.n + 1},cliente:'',pos:'',kg:'',lugar:'',horario:'',obs:'',estado:'programada'})">+ Viaje ${g.n + 1}</button>` : ''}</div></div>`;
+    });
+    h += `</div>`;
+  });
+  return h + `</div>`;
+}
+function formEnt(o) {
+  ED = o; const clis = entClientes(), lugares = [...new Set(entVivas().map(e => e.lugar).filter(Boolean))].sort();
+  const nViajes = Math.max(2, (+o.viaje || 1), ...entViajesDia(o.fecha).map(g => g.n + 1));
+  modal(o.id ? '📦 Editar entrega' : '📦 Nueva entrega · Eugenio', `
+    <div class="f"><label>Fecha</label><input type="date" id="e_f" value="${esc(o.fecha)}"></div>
+    <div class="f"><label>Viaje del día</label><select id="e_v">${Array.from({ length: nViajes }, (_, i) => i + 1).map(n => `<option value="${n}" ${+o.viaje === n ? 'selected' : ''}>Viaje ${n}</option>`).join('')}</select><span class="h">Si hace 2 viajes en el día, separalos acá</span></div>
+    <div class="f w"><label>Cliente</label><input id="e_c" list="e_cl" value="${esc(o.cliente || '')}" onchange="entAuto()" placeholder="Nombre del cliente"><datalist id="e_cl">${clis.map(c => `<option value="${esc(c)}">`).join('')}</datalist></div>
+    <div class="f"><label>Posiciones</label><input type="number" min="0" step="1" id="e_p" value="${esc(o.pos || '')}"></div>
+    <div class="f"><label>Kg</label><input type="number" min="0" step="1" id="e_k" value="${esc(o.kg || '')}" oninput="entCalc()"></div>
+    <div class="f w"><label>Lugar de entrega</label><input id="e_l" list="e_ll" value="${esc(o.lugar || '')}" placeholder="Dirección / depósito"><datalist id="e_ll">${lugares.map(c => `<option value="${esc(c)}">`).join('')}</datalist></div>
+    <div class="f"><label>Horario (opcional)</label><input id="e_h" value="${esc(o.horario || '')}" placeholder="Ej: 8 a 12 hs, antes de las 14"></div>
+    <div class="f"><label>Estado</label><select id="e_s">${Object.keys(ST_ENT).map(k => `<option value="${k}" ${o.estado === k ? 'selected' : ''}>${ST_ENT[k]}</option>`).join('')}</select></div>
+    <div class="f w"><label>Observaciones</label><textarea id="e_o" rows="2" placeholder="Ej: llamar antes, pedir remito firmado, descarga con autoelevador…">${esc(o.obs || '')}</textarea></div>
+    <div class="info" id="e_info"></div>`,
+    `<div>${o.id ? `<button class="btn bad" onclick="borrarEnt()">🗑 Borrar</button>` : ''}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="cerrar()">Cancelar</button>${o.id ? '' : `<button class="btn" onclick="guardarEnt(true)">💾 Guardar y cargar otra</button>`}<button class="btn pri" onclick="guardarEnt()">💾 Guardar</button></div>`);
+  entCalc();
+}
+function entAuto() { const u = entUltimo(v('e_c')); if (!u) return; if (!vt('e_l') && u.lugar) $('e_l').value = u.lugar; if (!vt('e_h') && u.horario) $('e_h').value = u.horario; entCalc(); }
+function entCalc() {
+  const f = v('e_f'), n = +v('e_v') || 1, g = entViajesDia(f).find(x => x.n === n), otros = g ? g.list.filter(e => e.id !== ED.id && e.estado !== 'cancelada') : [];
+  const kg = otros.reduce((s, e) => s + (+e.kg || 0), 0) + (+v('e_k') || 0), c = caps().Eugenio || { cap: 2000, u: 'kg' }, p = c.cap ? kg / c.cap : null;
+  $('e_info').innerHTML = `Viaje ${n} del ${dm(f)}: ${otros.length} entrega${otros.length === 1 ? '' : 's'} más · total <b>${fmt(kg)} kg</b> de ${capTxt('Eugenio')} → <b style="color:${occCol(p)}">${pct(p)}</b>${p > 1 ? ' · <b style="color:var(--bad)">se pasa de la capacidad</b>' : ''}${barra(p)}`;
+}
+async function guardarEnt(otra) {
+  const o = Object.assign({}, ED, { fecha: v('e_f'), viaje: +v('e_v') || 1, cliente: vt('e_c'), pos: +v('e_p') || '', kg: +v('e_k') || '', lugar: vt('e_l'), horario: vt('e_h'), obs: vt('e_o'), estado: v('e_s'), mod: nowISO() });
+  if (!o.fecha) return toast('Falta la fecha', true);
+  if (!o.cliente) return toast('Falta el cliente', true);
+  if (!o.kg && !o.pos) return toast('Poné los kg o las posiciones', true);
+  if (!o.id) { o.id = uid('EN'); o.creado = o.mod; const g = entViajesDia(o.fecha).find(x => x.n === o.viaje); o.orden = g ? g.list.length + 1 : 1; }
+  const ok = await escribir('Entregas', () => entWrite(d => { const i = d.entregas.findIndex(x => x.id === o.id); if (i >= 0) d.entregas[i] = o; else d.entregas.push(o); }));
+  if (ok && otra) formEnt({ fecha: o.fecha, viaje: o.viaje, cliente: '', pos: '', kg: '', lugar: '', horario: '', obs: '', estado: 'programada' });
+}
+async function borrarEnt() {
+  if (!await confirmar('¿Borrar esta entrega?', 'Borrar')) return;
+  const id = ED.id;
+  await escribir('Entregas', () => entWrite(d => { d.entregas = d.entregas.filter(x => x.id !== id); d.entregasEliminadas[id] = nowISO(); }));
+}
+async function entWrite(mut) {
+  const gj = await gistGet();
+  const d = parseEnt(await gistFile(gj, 'entregas.json'));
+  mut(d);
+  const lim = new Date(Date.now() - 120 * 864e5).toISOString();
+  Object.keys(d.entregasEliminadas).forEach(k => { if (d.entregasEliminadas[k] < lim) delete d.entregasEliminadas[k]; });
+  d.entregas = d.entregas.filter(x => !d.entregasEliminadas[x.id]);
+  await gistPatch({ 'entregas.json': { content: JSON.stringify({ version: 1, entregas: d.entregas, entregasEliminadas: d.entregasEliminadas, lastUpdate: nowISO() }) } });
+  S.ent = d;
+}
+function entWhats(f) {
+  let t = `*Entregas Eugenio · ${DIASL[dow(f)]} ${dm(f)}*\n`;
+  entViajesDia(f).forEach(g => {
+    t += `\n*Viaje ${g.n}* (${g.pos ? g.pos + ' pos · ' : ''}${fmt(g.kg)} kg)\n`;
+    g.list.filter(e => e.estado !== 'cancelada').forEach((e, i) => { t += `${i + 1}. *${e.cliente}* — ${e.pos ? e.pos + ' pos · ' : ''}${fmt(e.kg)} kg\n   📍 ${e.lugar || '—'}${e.horario ? '\n   🕑 ' + e.horario : ''}${e.obs ? '\n   📝 ' + e.obs : ''}\n`; });
+  });
+  const fin = () => toast('Copiado — pegalo en WhatsApp');
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(fin, () => prompt('Copiá el texto:', t)); else prompt('Copiá el texto:', t);
+}
+async function hojaRuta(f) {
+  const doc = pdfNuevo('portrait'); if (!doc) return;
+  const logo = await logoData(), W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 10;
+  pdfEncabezado(doc, 'Hoja de ruta · Entregas Eugenio', `${DIASL[dow(f)]} ${dm(f)}/${f.slice(0, 4)}`, [190, 24, 93], logo);
+  let y = 32;
+  const C = [M, M + 8, M + 52, M + 112, M + 140, M + 162], hdr = ['#', 'Cliente', 'Lugar de entrega', 'Horario', 'Posic.', 'Kg'];
+  entViajesDia(f).forEach(g => {
+    const p = entOcc(g), vivas = g.list.filter(e => e.estado !== 'cancelada');
+    if (y > H - 50) { doc.addPage(); y = 14; }
+    doc.setFillColor(253, 240, 246); doc.setDrawColor(245, 207, 224); doc.roundedRect(M, y, W - 2 * M, 10, 2, 2, 'FD');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(190, 24, 93); doc.text(`Viaje ${g.n}`, M + 4, y + 6.7);
+    doc.setFontSize(9); doc.setTextColor(31, 41, 55); doc.text(`${vivas.length} entrega${vivas.length === 1 ? '' : 's'} · ${g.pos ? g.pos + ' posiciones · ' : ''}${fmt(g.kg)} kg · ${pct(p)} de ${capTxt('Eugenio')}`, W - M - 4, y + 6.7, { align: 'right' });
+    y += 13;
+    doc.setFillColor(243, 244, 246); doc.rect(M, y, W - 2 * M, 6, 'F'); doc.setFontSize(7); doc.setTextColor(107, 114, 128); hdr.forEach((t, i) => doc.text(t.toUpperCase(), C[i] + 1.5, y + 4)); y += 6;
+    vivas.forEach((e, i) => {
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+      const cl = doc.splitTextToSize(e.cliente, 42), lu = doc.splitTextToSize(e.lugar || '—', 58), ho = doc.splitTextToSize(e.horario || '—', 26), ob = e.obs ? doc.splitTextToSize('Obs.: ' + e.obs, W - 2 * M - 12) : [];
+      const h = Math.max(cl.length, lu.length, ho.length) * 3.8 + ob.length * 3.6 + 5;
+      if (y + h > H - 12) { doc.addPage(); y = 14; }
+      doc.setTextColor(31, 41, 55); doc.setFont('helvetica', 'bold'); doc.text(String(i + 1), C[0] + 1.5, y + 4.5); doc.text(cl, C[1] + 1.5, y + 4.5);
+      doc.setFont('helvetica', 'normal'); doc.text(lu, C[2] + 1.5, y + 4.5); doc.text(ho, C[3] + 1.5, y + 4.5);
+      doc.text(e.pos ? String(e.pos) : '—', C[4] + 1.5, y + 4.5); doc.setFont('helvetica', 'bold'); doc.text(fmt(e.kg), C[5] + 1.5, y + 4.5);
+      if (ob.length) { doc.setFont('helvetica', 'italic'); doc.setFontSize(7.8); doc.setTextColor(107, 114, 128); doc.text(ob, C[1] + 1.5, y + 4.5 + Math.max(cl.length, lu.length, ho.length) * 3.8); }
+      // casilla para firma / tilde
+      doc.setDrawColor(209, 213, 219); doc.rect(W - M - 9, y + 1.6, 4, 4);
+      doc.setDrawColor(243, 244, 246); doc.line(M, y + h, W - M, y + h); y += h;
+    });
+    y += 6;
+  });
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(107, 114, 128);
+  if (y < H - 30) { doc.text('Firma chofer: ______________________', M, H - 18); doc.text('Hora salida: ________   Hora regreso: ________', W - M, H - 18, { align: 'right' }); }
+  pdfPie(doc);
+  doc.save(`hoja-de-ruta_eugenio_${f}.pdf`);
+  toast('Hoja de ruta descargada');
+}
+
 /* ═════════ PDF ═════════ */
 let LOGO_DATA = null;
 async function logoData() {
@@ -639,8 +816,8 @@ async function logoData() {
   try { const b = await (await fetch('icon-cronograma-192.png')).blob(); LOGO_DATA = await new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(b); }); } catch (_) { LOGO_DATA = ''; }
   return LOGO_DATA;
 }
-const RGB = { via: [109, 79, 194], pet: [37, 99, 235], ter: [15, 138, 95], lam: [194, 101, 15], ref: [14, 138, 138], evt: [120, 113, 108] };
-const RGBL = { via: [243, 239, 252], pet: [238, 244, 255], ter: [235, 248, 241], lam: [253, 243, 231], ref: [232, 246, 246], evt: [245, 245, 244] };
+const RGB = { ent: [190, 24, 93], via: [109, 79, 194], pet: [37, 99, 235], ter: [15, 138, 95], lam: [194, 101, 15], ref: [14, 138, 138], evt: [120, 113, 108] };
+const RGBL = { ent: [253, 240, 246], via: [243, 239, 252], pet: [238, 244, 255], ter: [235, 248, 241], lam: [253, 243, 231], ref: [232, 246, 246], evt: [245, 245, 244] };
 const occRGB = p => p == null ? [148, 163, 184] : p >= .85 ? [14, 122, 73] : p >= .6 ? [180, 130, 20] : [180, 35, 24];
 function pdfNuevo(orient) {
   if (!window.jspdf) { toast('No se pudo cargar el generador de PDF (revisá internet)', true); return null; }
@@ -667,6 +844,8 @@ function pdfLineas(it) {
   const o = it.o;
   if (it.src === 'via') { const x = o[it.leg] || {}, u = legUso(o, it.leg), p = legOcc(o, it.leg);
     return { k: 'via', t: `${o.transporte || '—'} · ${it.leg === 'ida' ? 'IDA a Lanús' : 'VUELTA a Chivilcoy'}${x.hora ? ' ' + x.hora : ''}`, l: [x.carga || 'Vacío', `${u ? uTxt(o.transporte, u) + ' · ' : ''}${pct(p)} ocupado${o.estado === 'cancelado' ? ' · CANCELADO' : o.estado === 'realizado' ? ' · realizado' : ''}`], occ: p }; }
+  if (it.src === 'ent') { const g = it.g;
+    return { k: 'ent', t: `Eugenio · Viaje ${g.n}`, l: g.list.map(e => `${e.cliente}${e.horario ? ' (' + e.horario + ')' : ''}${e.kg ? ' · ' + fmt(e.kg) + ' kg' : ''}`).concat([`${g.pos ? g.pos + ' pos. · ' : ''}${fmt(g.kg)} kg · ${pct(entOcc(g))}`]), occ: entOcc(g) }; }
   if (it.src === 'pet') { const p = petPed(o.pedidoId);
     if (!p && o.proy) return { k: 'pet', proy: 1, t: `${o.pCli || '—'} (proyectada)`, l: [o.pDesc || 'sin pedido', `${fmt(o.kgPlan)} kg`].concat(o.notas ? [o.notas] : []) };
     return { k: 'pet', t: p ? p.cliente : 'Pedido no encontrado', l: p ? [`OP ${p.nroOP || '-'} · ${p.ancho || '-'}x${p.espesor || '-'}${p.color ? ' · ' + p.color : ''}`, `${fmt(o.kgPlan)} kg · ${(ST_PET[o.status || 'pendiente'] || '').slice(2)}`].concat(o.notas ? [o.notas] : []) : [] }; }
@@ -805,6 +984,7 @@ function whatsapp() {
 function txtItem(it) {
   const o = it.o;
   if (it.src === 'via') { const x = o[it.leg] || {}; return `${o.transporte} ${it.leg === 'ida' ? 'IDA a Lanús' : 'VUELTA a Chivilcoy'}${x.hora ? ' ' + x.hora : ''}${o.estado === 'cancelado' ? ' (CANCELADO)' : ''}: ${x.carga || 'vacío'}${legUso(o, it.leg) ? ' (' + uTxt(o.transporte, legUso(o, it.leg)) + ')' : ''}`; }
+  if (it.src === 'ent') { const g = it.g; return `Eugenio viaje ${g.n}: ` + g.list.map(e => `${e.cliente}${e.horario ? ' (' + e.horario + ')' : ''}${e.kg ? ' ' + fmt(e.kg) + ' kg' : ''}`).join(', '); }
   if (it.src === 'pet') { const p = petPed(o.pedidoId); return p ? `${p.cliente} OP ${p.nroOP || '-'} ${p.ancho || ''}x${p.espesor || ''} · ${fmt(o.kgPlan)} kg` : `${o.pCli || '?'} ${o.pDesc || ''} (proyectada) · ${fmt(o.kgPlan)} kg`; }
   if (it.src === 'ter') { const ev = TER_EVT[o.prod]; return `${o.turno} ${ev ? ev.lbl : o.prod}${o.meta ? ' · ' + o.meta + ' pal.' : ''}${(o.operarios || []).length ? ' · ' + o.operarios.join(', ') : ''}`; }
   if (it.src === 'lam') { const oc = o.ocId ? lamOc(o.ocId) : null; return `${oc ? oc.cliente + ' OC ' + oc.nro + (oc.desc ? ' ' + oc.desc : '') : o.proy ? (o.pCli || '?') + ' ' + (o.pDesc || '') + ' (proyectada)' : (o.nota || 'Tarea')} · ${o.turno || ''}${o.kgObj ? ' · ' + fmt(o.kgObj) + ' kg' : ''}${o.operario ? ' · ' + o.operario : ''}`; }
@@ -824,6 +1004,7 @@ function pieForm(fnGuardar, fnBorrar) {
 function nuevo(area, fecha) {
   if (!area) return modal(`Agregar · ${DIASL[dow(fecha)]} ${dm(fecha)}`, `<div class="area-pick">${AREAS.map(a => `<button style="border-left:5px solid ${a.col}" onclick="nuevo('${a.id}','${fecha}')">${a.id === 'via' ? '🚚 ' : ''}${a.nom}<small>${a.sub}${errArea(a.id) ? ' · sin conexión' : ''}</small></button>`).join('')}</div>`);
   if (errArea(area)) return toast('Sin conexión con ' + AREA[area].nom + ': ' + errArea(area), true);
+  if (area === 'ent') return formEnt({ fecha, viaje: entViajeLibre(fecha), cliente: '', pos: '', kg: '', lugar: '', horario: '', obs: '', estado: 'programada' });
   if (area === 'via') return formVia({ transporte: '', estado: 'programado', ida: { fecha, hora: '', carga: '', pos: '', kg: '' }, vuelta: { fecha, hora: '', carga: '', pos: '', kg: '' } });
   if (area === 'pet') return formPet({ fecha, status: 'pendiente', kgPlan: 0 }, fecha);
   if (area === 'ter') return formTer({ fecha, turno: diaTurnoTer(fecha), prod: '', meta: 0, operarios: [], obs: '' });
@@ -832,6 +1013,8 @@ function nuevo(area, fecha) {
 function editar(src, id, f) {
   const cp = o => JSON.parse(JSON.stringify(o));
   if (src === 'via') { const o = viajesVivos().find(x => x.id === id); if (o) formVia(cp(o)); return; }
+  if (src === 'ent') { S.ini = lunesDe(f); irTab('ent'); setTimeout(() => { const e = $('ed-' + f); if (e) e.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 60); return; }
+  if (src === 'entx') { const o = entVivas().find(x => x.id === id); if (o) formEnt(cp(o)); return; }
   if (src === 'pet') { const d = S.pet.planificacion[f]; const o = d && d.ops.find(x => x.id === id); if (o) formPet(cp(o), f); return; }
   if (src === 'ter') { const o = (S.ter.cronograma || []).find(x => x.id === id); if (o) formTer(cp(o)); return; }
   if (src === 'lam') { const o = (S.lam.cronograma || []).find(x => x.id === id); if (o) formLam(cp(o)); }
@@ -1061,9 +1244,9 @@ async function lamWrite(mut, ok) {
 /* ── guardado común ── */
 let escribiendo = false;
 async function escribir(nom, fn) {
-  if (escribiendo) return; escribiendo = true; busy(true, 'Guardando en ' + nom + '…');
-  try { await fn(); cerrar(); toast('Guardado en ' + nom + ' ✓'); render(); }
-  catch (e) { console.error(e); toast(e.message === 'SIN_GIST' ? 'Falta conectar el Gist de PET' : ('No se guardó: ' + e.message), true); }
+  if (escribiendo) return false; escribiendo = true; busy(true, 'Guardando en ' + nom + '…');
+  try { await fn(); cerrar(); toast('Guardado en ' + nom + ' ✓'); render(); return true; }
+  catch (e) { console.error(e); toast(e.message === 'SIN_GIST' ? 'Falta conectar el Gist de PET' : ('No se guardó: ' + e.message), true); return false; }
   finally { escribiendo = false; busy(false); }
 }
 
