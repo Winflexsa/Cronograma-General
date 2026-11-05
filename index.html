@@ -174,7 +174,7 @@ td:hover .add,.add.touch{opacity:1}
 
 <script>
 'use strict';
-const VERSION = 'v1.1';
+const VERSION = 'v1.2';
 document.getElementById('ver').textContent = '· ' + VERSION;
 
 /* ═════════ CONEXIONES (mismas que usan las apps) ═════════ */
@@ -402,7 +402,7 @@ function render() {
   h += proximoViaje();
   h += `<div class="wrap">` + (S.vista === 'semana' ? grilla(ds, hoy) : agenda(ds, hoy)) + `</div>`;
   $('app').innerHTML = h;
-  if (S.vista === 'agenda' && !render._scrolled) { const e = document.querySelector('.ag-day.hoy'); if (e) { render._scrolled = true; setTimeout(() => e.scrollIntoView({ block: 'start' }), 50); } }
+  if (S.vista === 'agenda' && !render._scrolled && ultCarga) { const e = document.querySelector('.ag-day.hoy'); if (e) { render._scrolled = true; setTimeout(() => e.scrollIntoView({ block: 'start' }), 50); } }
 }
 function proximoViaje() {
   if (!S.via) return '';
