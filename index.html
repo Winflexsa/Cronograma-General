@@ -4,162 +4,223 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cronograma General · Winflex</title>
-<meta name="theme-color" content="#0e7a49">
+<meta name="theme-color" content="#0f8a5f">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" href="icon-cronograma-192.png">
 <link rel="apple-touch-icon" href="icon-cronograma-192.png">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#eef1ee;--surf:#fff;--surf2:#f1f5f1;--surf3:#e5ebe5;
-  --border:#dde4dd;--border2:#cbd5cb;
-  --text:#19211b;--text2:#5c665e;--text3:#94a096;
-  --green:#15a463;--green-d:#0e7a49;--green-dd:#0a5e38;--green-l:#e4f6ec;
-  --bad:#a33b3b;--bad-l:#f7e6e6;--mid:#b07d13;--mid-l:#fbf1da;
-  /* áreas */
-  --via:#6a4fb0;--via-l:#f1edfb;
-  --pet:#2f6fb5;--pet-l:#e9f1fb;
-  --ter:#0e7a49;--ter-l:#e4f6ec;
-  --lam:#b0651a;--lam-l:#fbf0e3;
-  --ref:#2b8a8a;--ref-l:#e3f4f3;
-  --r:14px;--r-sm:9px;
-  --sh:0 1px 2px rgba(20,40,30,.04),0 4px 14px rgba(20,40,30,.05);
+  --bg:#f3f4f6;--surf:#fff;--border:#e5e7eb;--border2:#d1d5db;
+  --text:#1f2937;--text2:#6b7280;--text3:#9ca3af;
+  --g:#16a34a;--gd:#0f8a5f;--gdd:#0a5e38;--gl:#e8f7ef;--gl2:#ccebd9;
+  --ok:#0e7a49;--okl:#e4f6ec;--mid:#a16207;--midl:#fdf3dc;--bad:#b42318;--badl:#fdecea;
+  --via:#6d4fc2;--via-l:#f3effc;--via-b:#dcd2f5;
+  --pet:#2563eb;--pet-l:#eef4ff;--pet-b:#cfe0fb;
+  --ter:#0f8a5f;--ter-l:#ebf8f1;--ter-b:#c8eadb;
+  --lam:#c2650f;--lam-l:#fdf3e7;--lam-b:#f3dbbd;
+  --ref:#0e8a8a;--ref-l:#e8f6f6;--ref-b:#c3e5e4;
+  --sh:0 1px 2px rgba(15,23,42,.04),0 3px 12px rgba(15,23,42,.06);
+  --sh2:0 6px 20px rgba(15,23,42,.10);
+  --mono:'DM Mono',ui-monospace,Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px;margin:0}
 button,input,select,textarea{font-family:inherit;font-size:14px}
-.mono{font-family:'DM Mono',monospace}
+.mono{font-family:var(--mono)}
 .hidden{display:none!important}
 
-/* barra superior */
-.top{background:var(--surf);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;position:sticky;top:0;z-index:20}
-.top img{height:30px}
-.top h1{font-size:18px;margin:0;font-weight:700;color:var(--green-dd)}
-.top .sub{font-size:12px;color:var(--text3)}
-.top .sp{flex:1}
-.sync{display:flex;gap:6px;flex-wrap:wrap}
-.sb{font-size:11px;padding:3px 8px;border-radius:20px;background:var(--surf2);color:var(--text2);border:1px solid var(--border);white-space:nowrap}
-.sb.ok::before{content:'●';color:var(--green);margin-right:4px}
-.sb.err{background:var(--bad-l);color:var(--bad);border-color:#e9c9c9}
-.sb.err::before{content:'●';margin-right:4px}
-.sb.load::before{content:'◌';margin-right:4px}
+/* ── encabezado y pestañas (como PET Chivilcoy) ── */
+header{background:#fff;border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+header img{height:34px}
+header h1{font-size:18px;margin:0;font-weight:700}
+header .sub{font-size:12px;color:var(--text3)}
+header .sp{flex:1}
+.sync{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.sb{font-size:11px;padding:4px 10px;border-radius:999px;background:#f3f4f6;color:var(--text2);font-weight:600;white-space:nowrap}
+.sb::before{content:'●';margin-right:5px;color:var(--g)}
+.sb.err{background:var(--badl);color:var(--bad)}.sb.err::before{color:var(--bad)}
+.sb.load::before{content:'◌';color:var(--text3)}
+nav.tabs{background:#fff;border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:4px;overflow-x:auto;position:sticky;top:0;z-index:20}
+.tab{padding:13px 18px;cursor:pointer;border:none;background:none;font-size:14px;color:var(--text2);font-weight:600;border-bottom:2px solid transparent;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.on{color:var(--g);border-bottom-color:var(--g)}
+main{padding:18px 24px 40px;max-width:1800px;margin:0 auto}
 
-.bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 18px 0}
-.btn{background:var(--surf);border:1px solid var(--border2);border-radius:var(--r-sm);padding:7px 12px;cursor:pointer;color:var(--text);font-weight:600;white-space:nowrap}
-.btn:hover{background:var(--surf2)}
-.btn.pri{background:var(--green);border-color:var(--green);color:#fff}
-.btn.pri:hover{background:var(--green-d)}
-.btn.via{background:var(--via);border-color:var(--via);color:#fff}
-.btn.bad{color:var(--bad);border-color:#e3c4c4}
-.btn.sm{padding:4px 9px;font-size:12px}
-.seg{display:inline-flex;border:1px solid var(--border2);border-radius:var(--r-sm);overflow:hidden;background:var(--surf)}
-.seg button{border:none;background:none;padding:7px 12px;cursor:pointer;font-weight:600;color:var(--text2)}
-.seg button.on{background:var(--green-l);color:var(--green-dd)}
-.wk{font-weight:700;font-size:16px;color:var(--green-dd);margin:0 6px}
+/* ── botones ── */
+.btn{background:#fff;border:1px solid var(--border2);border-radius:10px;padding:8px 14px;cursor:pointer;color:var(--text);font-weight:600;white-space:nowrap;font-size:13px}
+.btn:hover{background:#f9fafb}
+.btn.pri{background:var(--g);border-color:var(--g);color:#fff}.btn.pri:hover{background:var(--gd)}
+.btn.via{background:var(--via);border-color:var(--via);color:#fff}.btn.via:hover{filter:brightness(.95)}
+.btn.bad{color:var(--bad);border-color:#f1c5c0}
+.btn.sm{padding:5px 10px;font-size:12px;border-radius:8px}
+.btn.ic{padding:6px 10px}
+.seg{display:inline-flex;background:#eef0f2;border-radius:11px;padding:3px;gap:2px}
+.seg button{border:0;background:none;padding:6px 13px;border-radius:9px;font-size:12.5px;font-weight:600;color:var(--text2);cursor:pointer}
+.seg button.on{background:#fff;color:var(--gd);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+/* ── banner ── */
+.hero{background:linear-gradient(120deg,#0f8a5f 0%,#16a34a 60%,#22b35e 100%);color:#fff;border-radius:16px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 6px 18px rgba(15,138,95,.25)}
+.hero .s{font-size:13px;opacity:.9}
+.hero .t{font-size:21px;font-weight:700;margin-top:2px}
+.hero .r{display:flex;gap:22px;flex-wrap:wrap}
+.hero .r div{text-align:right}
+.hero .r small{display:block;font-size:11px;opacity:.85;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.hero .r b{font-family:var(--mono);font-size:24px;font-weight:500}
+.hero.via{background:linear-gradient(120deg,#5b3fb0 0%,#6d4fc2 60%,#8466d6 100%);box-shadow:0 6px 18px rgba(109,79,194,.25)}
+.bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0}
+.wk{font-weight:700;font-size:15px;margin:0 6px}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
-.fchip{border:1px solid var(--border2);background:var(--surf);border-radius:20px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text2);display:flex;align-items:center;gap:5px}
+.fchip{border:1px solid var(--border2);background:#fff;border-radius:999px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text);display:flex;align-items:center;gap:6px}
 .fchip i{width:9px;height:9px;border-radius:50%;display:inline-block}
-.fchip.off{opacity:.45;text-decoration:line-through}
+.fchip.off{opacity:.4}
 
-/* próximo viaje */
-.next{margin:12px 18px 0;background:var(--via-l);border:1px solid #ddd3f3;border-radius:var(--r);padding:10px 14px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px}
-.next b{color:var(--via)}
+/* ── semana en tarjetas por día ── */
+.week{display:grid;grid-template-columns:repeat(7,minmax(178px,1fr));gap:10px;overflow-x:auto;padding-bottom:6px}
+.day{scroll-margin-top:58px;background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh);display:flex;flex-direction:column;min-width:0}
+.day.hoy{border:2px solid var(--g);box-shadow:0 0 0 4px var(--gl),var(--sh)}
+.day.dom .dh{background:#fafafa}
+.dh{display:flex;justify-content:space-between;align-items:center;padding:11px 12px 10px;border-bottom:1px solid #f0f1f3;border-radius:16px 16px 0 0}
+.dh b{font-size:14px}
+.dh .hb{background:var(--g);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;margin-left:6px;vertical-align:1px}
+.dh .add{background:var(--g);color:#fff;border:0;border-radius:8px;padding:4px 10px;font-weight:700;font-size:12px;cursor:pointer}
+.dh .add:hover{background:var(--gd)}
+.db{padding:8px 10px 10px;display:flex;flex-direction:column;gap:8px;flex:1}
+.ar{display:flex;flex-direction:column;gap:6px}
+.al{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.al span.p{cursor:pointer;opacity:.0;font-size:14px;line-height:1;padding:0 4px}
+.day:hover .al span.p{opacity:.7}
+.empty{color:var(--text3);font-size:12px;font-style:italic;text-align:center;padding:18px 0}
+.df{border-top:1px solid #f0f1f3;padding:7px 12px;font-size:11px;color:var(--text3);display:flex;justify-content:space-between}
 
-/* grilla semanal */
-.wrap{padding:12px 18px 30px}
-.grid{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow-x:auto}
-table.g{border-collapse:separate;border-spacing:0;width:100%;min-width:1180px;table-layout:fixed}
-table.g th{position:sticky;top:0;background:var(--surf2);font-size:12px;font-weight:700;color:var(--text2);padding:8px 6px;border-bottom:1px solid var(--border);text-align:left}
-table.g th.hoy{background:var(--green-l);color:var(--green-dd)}
-table.g th.dom,table.g td.dom{background:#fafbfa}
-table.g th small{display:block;font-weight:500;color:var(--text3);font-size:11px}
-table.g td{vertical-align:top;border-bottom:1px solid var(--border);border-left:1px solid var(--border);padding:5px;min-height:70px}
-table.g td.hoy{background:#f6fbf8}
-table.g td.area{border-left:none;padding:10px 10px;font-weight:700;font-size:13px;position:sticky;left:0;background:var(--surf);z-index:2}
-td.area small{display:block;font-weight:500;color:var(--text3);font-size:11px;margin-top:2px}
-td.area .dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
-.cell{min-height:64px;display:flex;flex-direction:column;gap:5px;height:100%}
-.add{opacity:0;border:1px dashed var(--border2);border-radius:8px;text-align:center;color:var(--text3);font-size:12px;padding:3px;cursor:pointer;margin-top:auto}
-td:hover .add,.add.touch{opacity:1}
-.add:hover{background:var(--surf2);color:var(--text)}
-
-.it{border-radius:9px;padding:6px 8px 6px 10px;font-size:12px;line-height:1.3;cursor:pointer;border:1px solid transparent;position:relative;background:var(--surf2)}
-.it::before{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:3px;background:currentColor;opacity:.8}
-.it:hover{box-shadow:0 2px 8px rgba(0,0,0,.08)}
-.it b{display:block;font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis}
-.it .m{color:var(--text2);font-size:11px}
-.it .k{font-family:'DM Mono',monospace;font-size:11px;font-weight:500}
-.it.via{background:var(--via-l);color:var(--via);border-color:#e0d7f5}
-.it.pet{background:var(--pet-l);color:var(--pet);border-color:#d6e4f5}
-.it.ter{background:var(--ter-l);color:var(--ter);border-color:#cfe9da}
-.it.lam{background:var(--lam-l);color:var(--lam);border-color:#f0dcc2}
-.it.ref{background:var(--ref-l);color:var(--ref);border-color:#c8e6e4}
+/* ── tarjetas de cada cosa ── */
+.it{border-radius:11px;padding:8px 10px;font-size:12px;line-height:1.35;cursor:pointer;border:1px solid var(--border);background:#fff;transition:box-shadow .15s,transform .15s}
+.it:hover{box-shadow:var(--sh2);transform:translateY(-1px)}
+.it .h{display:flex;justify-content:space-between;gap:6px;align-items:flex-start}
+.it b{font-weight:700;font-size:12.5px;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis}
+.it .m{color:var(--text2);font-size:11px;margin-top:1px}
+.it .k{font-family:var(--mono);font-size:11.5px;font-weight:500;margin-top:3px}
+.it .n{color:var(--text2);font-size:11px;font-style:italic;margin-top:2px}
+.it.pet{background:var(--pet-l);border-color:var(--pet-b)}.it.pet .k{color:var(--pet)}
+.it.ter{background:var(--ter-l);border-color:var(--ter-b)}.it.ter .k{color:var(--ter)}
+.it.lam{background:var(--lam-l);border-color:var(--lam-b)}.it.lam .k{color:var(--lam)}
+.it.ref{background:var(--ref-l);border-color:var(--ref-b)}.it.ref .k{color:var(--ref)}
+.it.via{background:var(--via-l);border-color:var(--via-b)}.it.via .k{color:var(--via)}
 .it.proy{background:#fff;border:1.5px dashed currentColor}
-.it.evt{background:#f4f4f2;color:#7a7a72;border-color:#e4e4df}
-.it.canc{opacity:.5;text-decoration:line-through}
-.tag{display:inline-block;font-size:9.5px;font-weight:700;padding:0 5px;border-radius:4px;background:currentColor;margin-left:3px;vertical-align:1px}
-.tag span{color:#fff}
-.vrow{display:flex;gap:4px;font-size:11px;color:var(--text2);margin-top:2px}
-.vrow em{font-style:normal;font-weight:700;color:var(--via);min-width:34px}
+.it.pet.proy{color:var(--pet)}.it.lam.proy{color:var(--lam)}.it.ref.proy{color:var(--ref)}
+.it.evt{background:#f5f5f4;border-color:#e7e5e4}
+.it.canc{opacity:.45;text-decoration:line-through}
+.tg{display:inline-block;font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:5px;white-space:nowrap;letter-spacing:.02em}
+.tg.p{background:currentColor}.tg.p span{color:#fff}
+.tg.ida{background:#ede7fb;color:var(--via)}.tg.vue{background:#e6f0ff;color:#2f5fc4}
+.tg.ok{background:var(--okl);color:var(--ok)}.tg.mid{background:var(--midl);color:var(--mid)}.tg.bad{background:var(--badl);color:var(--bad)}.tg.gr{background:#eef0f2;color:var(--text2)}
+.occ{height:6px;border-radius:999px;background:rgba(0,0,0,.07);margin-top:5px;overflow:hidden}
+.occ i{display:block;height:100%;border-radius:999px}
 
-/* agenda (celular) */
-.ag-day{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);margin-bottom:12px;box-shadow:var(--sh);overflow:hidden}
-.ag-day.hoy{border-color:var(--green);box-shadow:0 0 0 3px var(--green-l)}
-.ag-h{padding:10px 14px;background:var(--surf2);font-weight:700;display:flex;justify-content:space-between;align-items:center}
-.ag-h small{color:var(--text3);font-weight:500}
-.ag-a{padding:8px 14px;border-top:1px solid var(--border)}
-.ag-a .t{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center}
-.ag-a .its{display:flex;flex-direction:column;gap:5px}
-.empty{color:var(--text3);font-size:12px;font-style:italic;padding:6px 14px 10px}
+/* ── viajes (lista) ── */
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}
+.vc{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh);overflow:hidden;cursor:pointer}
+.vc:hover{box-shadow:var(--sh2)}
+.vc .vh{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #f0f1f3;gap:8px}
+.vc .vh b{font-size:15px}
+.vc .vh small{color:var(--text3);font-size:12px;display:block}
+.legs{display:grid;grid-template-columns:1fr 1fr}
+.leg{padding:11px 14px;min-width:0}
+.leg+.leg{border-left:1px solid #f0f1f3}
+.leg .lt{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;display:flex;justify-content:space-between}
+.leg .lf{font-size:12px;color:var(--text2);margin-top:2px}
+.leg .lc{font-size:12.5px;margin-top:6px;min-height:18px}
+.leg .lv{font-family:var(--mono);font-size:12px;margin-top:4px;display:flex;justify-content:space-between}
+.vc .vf{padding:9px 14px;border-top:1px solid #f0f1f3;background:#fafafa;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text2)}
+.sec{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:22px 0 10px}
+.sec h3{margin:0;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gd)}
 
-/* modal */
-.mbg{position:fixed;inset:0;background:rgba(15,25,20,.45);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:30px 14px;overflow:auto}
-.modal{background:var(--surf);border-radius:18px;width:100%;max-width:560px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+/* ── análisis ── */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.kpi{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:var(--sh);padding:14px 16px;min-width:0}
+.kpi .v{font-family:var(--mono);font-size:26px;font-weight:500;line-height:1.1}
+.kpi .l{font-size:12px;font-weight:600;color:var(--text2);margin-top:4px}
+.kpi .s{font-size:11px;color:var(--text3);margin-top:2px}
+.tcards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.tc{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh);padding:16px 18px}
+.tc .th{display:flex;justify-content:space-between;align-items:baseline}
+.tc .th b{font-size:17px}
+.tc .th small{color:var(--text3);font-size:12px}
+.tc .big{font-family:var(--mono);font-size:34px;font-weight:500;margin:10px 0 2px}
+.tc .row{display:flex;justify-content:space-between;font-size:12.5px;margin-top:9px}
+.tc .row span{color:var(--text2)}
+.box{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh);padding:6px 0;overflow-x:auto}
+table.t{width:100%;border-collapse:collapse;font-size:13px;min-width:760px}
+table.t th{text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);padding:9px 14px;border-bottom:1px solid var(--border)}
+table.t td{padding:9px 14px;border-bottom:1px solid #f3f4f6;vertical-align:middle}
+table.t tr:last-child td{border-bottom:none}
+table.t tr.cl{cursor:pointer}table.t tr.cl:hover td{background:#fafafa}
+.pb{display:flex;align-items:center;gap:8px;min-width:120px}
+.pb .occ{flex:1;margin:0;height:8px}
+.pb span{font-family:var(--mono);font-size:12px;width:42px;text-align:right}
+.note{font-size:12px;color:var(--text3)}
+
+/* ── modal ── */
+.mbg{position:fixed;inset:0;background:rgba(17,24,39,.45);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:28px 14px;overflow:auto}
+.modal{background:#fff;border-radius:18px;width:100%;max-width:580px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal.w{max-width:760px}
 .mh{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
 .mh h3{margin:0;font-size:17px;flex:1}
 .mh .x{border:none;background:none;font-size:20px;cursor:pointer;color:var(--text3)}
 .mb{padding:16px 20px;display:flex;flex-wrap:wrap;gap:12px}
-.f{flex:1 1 220px;display:flex;flex-direction:column;gap:4px}
+.f{flex:1 1 200px;display:flex;flex-direction:column;gap:4px;min-width:0}
 .f.w{flex-basis:100%}
 .f label{font-size:12px;font-weight:700;color:var(--text2)}
-.f input,.f select,.f textarea{border:1px solid var(--border2);border-radius:var(--r-sm);padding:9px 10px;background:var(--surf);width:100%}
-.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px var(--green-l)}
+.f input,.f select,.f textarea{border:1px solid var(--border2);border-radius:10px;padding:9px 10px;background:#fff;width:100%}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--g);box-shadow:0 0 0 3px var(--gl)}
 .f .h{font-size:11px;color:var(--text3)}
 .mf{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap}
 .opsel{display:flex;flex-wrap:wrap;gap:6px}
-.opsel label{font-weight:500;font-size:12px;border:1px solid var(--border2);border-radius:20px;padding:4px 10px;cursor:pointer;display:flex;gap:5px;align-items:center;color:var(--text)}
+.opsel label{font-weight:500;font-size:12px;border:1px solid var(--border2);border-radius:999px;padding:5px 11px;cursor:pointer;display:flex;gap:5px;align-items:center;color:var(--text)}
 .opsel input{width:auto}
 .area-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
-.area-pick button{border:1px solid var(--border2);background:var(--surf);border-radius:12px;padding:12px;text-align:left;cursor:pointer;font-weight:700}
-.area-pick button small{display:block;font-weight:500;color:var(--text3);font-size:11px}
-.info{background:var(--surf2);border-radius:var(--r-sm);padding:9px 12px;font-size:12px;color:var(--text2);width:100%}
-
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1d2b22;color:#fff;padding:10px 18px;border-radius:12px;font-size:13px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:90vw}
+.area-pick button{border:1px solid var(--border);background:#fff;border-radius:13px;padding:13px;text-align:left;cursor:pointer;font-weight:700;font-size:14px}
+.area-pick button:hover{box-shadow:var(--sh2)}
+.area-pick button small{display:block;font-weight:500;color:var(--text3);font-size:11.5px;margin-top:2px}
+.info{background:#f9fafb;border-radius:10px;padding:9px 12px;font-size:12px;color:var(--text2);width:100%}
+.tsel{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+.tsel button{border:1.5px solid var(--border2);background:#fff;border-radius:13px;padding:11px 8px;cursor:pointer;text-align:center;font-weight:700;font-size:15px}
+.tsel button small{display:block;font-size:11.5px;font-weight:500;color:var(--text3);margin-top:2px}
+.tsel button.on{border-color:var(--via);background:var(--via-l);color:var(--via);box-shadow:0 0 0 3px rgba(109,79,194,.12)}
+.lb{width:100%;border:1px solid var(--border);border-radius:14px;padding:12px;display:flex;flex-wrap:wrap;gap:10px}
+.lb.ida{background:#faf8fe;border-color:var(--via-b)}
+.lb.vue{background:#f7faff;border-color:#d6e4fb}
+.lb .lbt{width:100%;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.lb.ida .lbt{color:var(--via)}.lb.vue .lbt{color:#2f5fc4}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#1f2937;color:#fff;padding:11px 18px;border-radius:12px;font-size:13px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:90vw}
 .toast.err{background:var(--bad)}
-.busy{position:fixed;inset:0;background:rgba(255,255,255,.55);z-index:150;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--green-dd)}
+.busy{position:fixed;inset:0;background:rgba(255,255,255,.6);z-index:150;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--gd);font-size:15px}
 
-/* conexión */
-.cfg{max-width:520px;margin:40px auto;background:var(--surf);border-radius:18px;padding:24px;box-shadow:var(--sh)}
-
-@media (max-width:700px){
-  .top{padding:8px 12px}.top img{height:24px}.top h1{font-size:16px}
-  .bar,.wrap{padding-left:12px;padding-right:12px}.next{margin-left:12px;margin-right:12px}
-  .add{opacity:1}
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(3,1fr)}.tcards{grid-template-columns:1fr}}
+@media (max-width:760px){
+  header{padding:10px 14px}header img{height:26px}header h1{font-size:16px}
+  nav.tabs{padding:0 8px}.tab{padding:12px 11px;font-size:13px}
+  main{padding:12px 12px 40px}
+  .week{grid-template-columns:1fr;overflow:visible}
+  .al span.p{opacity:.7}
+  .hero{padding:14px 16px}.hero .t{font-size:18px}.hero .r b{font-size:20px}
+  .kpis{grid-template-columns:1fr 1fr}
+  .vgrid{grid-template-columns:1fr}
+  .tsel button{font-size:14px}
 }
 @media print{
   @page{size:A4 landscape;margin:8mm}
   body{background:#fff;font-size:11px}
-  .top .sync,.bar,.next,.add,.noprint{display:none!important}
-  .top{position:static;border:none;padding:0 0 6px}
-  .wrap{padding:0}.grid{box-shadow:none;border:1px solid #ccc;overflow:visible}
-  table.g{min-width:0}
-  .it{break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  table.g th,table.g td{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .sync,nav.tabs,.bar,.noprint,.dh .add,.al span.p{display:none!important}
+  header{box-shadow:none;border:none;padding:0 0 6px}main{padding:0}
+  .week{grid-template-columns:repeat(7,1fr);gap:4px;overflow:visible}.day{box-shadow:none}
+  .hero,.it,.day,.tg{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .it{break-inside:avoid}
 }
 </style>
 </head>
 <body>
-<div class="top">
+<header>
   <img src="logo-winflex.png" alt="Winflex">
   <div>
     <h1>Cronograma General</h1>
@@ -167,17 +228,17 @@ td:hover .add,.add.touch{opacity:1}
   </div>
   <div class="sp"></div>
   <div class="sync" id="sync"></div>
-</div>
-
-<div id="app"></div>
+</header>
+<nav class="tabs" id="tabs"></nav>
+<main id="app"></main>
 <div id="modal"></div>
 
 <script>
 'use strict';
-const VERSION = 'v1.2';
+const VERSION = 'v2.0';
 document.getElementById('ver').textContent = '· ' + VERSION;
 
-/* ═════════ CONEXIONES (mismas que usan las apps) ═════════ */
+/* ═════════ CONEXIONES (las mismas que usan las apps) ═════════ */
 const JB_KEY_DEF = '$2a$10$8p4t41BnTv.9Ls.4kFLhouDMqJGQEd5LQlBYEz8n1y6nH/3dFq27G';
 function lsGet(k) { try { return localStorage.getItem(k); } catch (_) { return null; } }
 function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (_) {} }
@@ -189,7 +250,7 @@ function lamCfg() {
 }
 function jbHeaders(c, extra) { return Object.assign({ [c.type === 'access' ? 'X-Access-Key' : 'X-Master-Key']: c.key }, extra || {}); }
 function gistCreds() { try { return JSON.parse(lsGet('winflex_gist_credentials') || 'null'); } catch (_) { return null; } }
-(function importarCredsDesdeLink() { // mismo link de conexión que usa PET Chivilcoy (#wfc=...)
+(function importarCredsDesdeLink() { // mismo link de conexión que genera PET Chivilcoy (#wfc=...)
   try {
     const m = (location.hash || '').match(/[#&]wfc=([^&]+)/); if (!m) return;
     const j = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1]).replace(/-/g, '+').replace(/_/g, '/')))));
@@ -210,8 +271,10 @@ function addD(s, n) { const d = new Date(s + 'T12:00'); d.setDate(d.getDate() + 
 function lunesDe(s) { const d = new Date(s + 'T12:00'); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return ymd(d); }
 const DIAS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 const DIASL = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const MESES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
 const dow = s => new Date(s + 'T12:00').getDay();
-const dm = s => s.slice(8, 10) + '/' + s.slice(5, 7);
+const dm = s => s ? s.slice(8, 10) + '/' + s.slice(5, 7) : '';
+const dLargo = s => `${DIAS[dow(s)]} ${+s.slice(8, 10)} ${MESES[+s.slice(5, 7) - 1]}`;
 const uid = p => p + '-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
 let toastT;
 function toast(msg, err) { const t = document.createElement('div'); t.className = 'toast' + (err ? ' err' : ''); t.textContent = msg; document.querySelectorAll('.toast').forEach(x => x.remove()); document.body.appendChild(t); clearTimeout(toastT); toastT = setTimeout(() => t.remove(), err ? 6000 : 3000); }
@@ -235,20 +298,35 @@ const AREAS = [
   { id: 'rg', nom: 'Refiladora Gris', sub: 'Lanús', cls: 'ref', col: 'var(--ref)', maq: 'Refiladora Gris' },
 ];
 const AREA = Object.fromEntries(AREAS.map(a => [a.id, a]));
-const MAQ2AREA = { 'Laminadora': 'lam', 'Refiladora Verde': 'rv', 'Refiladora Gris': 'rg' };
+
+/* ═════════ TRANSPORTES Y CAPACIDADES ═════════ */
+const CAP_DEF = {
+  Aguirre: { u: 'pos', cap: 14 },
+  Monti: { u: 'pos', cap: 11 },
+  Eugenio: { u: 'kg', cap: 2000 },
+};
+function caps() { return (S.via && S.via.capacidades) || CAP_DEF; }
+function capTxt(t) { const c = caps()[t]; if (!c) return ''; return c.u === 'kg' ? (c.cap >= 1000 ? fmt(c.cap / 1000) + ' t' : fmt(c.cap) + ' kg') : c.cap + ' posiciones'; }
+function uTxt(t, n) { const c = caps()[t]; if (!c) return fmt(n); return c.u === 'kg' ? fmt(n) + ' kg' : fmt(n) + ' pos.'; }
+function legUso(v, l) { const c = caps()[v.transporte], x = v[l]; if (!c || !x) return 0; return +(c.u === 'kg' ? x.kg : x.pos) || 0; }
+function legOcc(v, l) { const c = caps()[v.transporte]; if (!c || !c.cap) return null; return legUso(v, l) / c.cap; }
+function occCol(p) { return p == null ? '#cbd5e1' : p >= .85 ? 'var(--ok)' : p >= .6 ? '#d39a14' : 'var(--bad)'; }
+function occCls(p) { return p == null ? 'gr' : p >= .85 ? 'ok' : p >= .6 ? 'mid' : 'bad'; }
+const pct = p => p == null ? '—' : Math.round(p * 100) + '%';
+function barra(p) { return `<div class="occ"><i style="width:${Math.min(100, Math.round((p || 0) * 100))}%;background:${occCol(p)}"></i></div>`; }
 
 /* ═════════ ESTADO ═════════ */
 const S = {
   ter: null, lam: null, pet: null, via: null,
   petPedidos: [], petProd: {},
-  err: { ter: '', lam: '', pet: '', via: '' }, load: { ter: false, lam: false, pet: false, via: false },
+  err: { ter: '', lam: '', pet: '', via: '' },
   ini: lunesDe(hoyISO()),
-  vista: lsGet('cg_vista') || (window.innerWidth < 800 ? 'agenda' : 'semana'),
+  tab: lsGet('cg_tab') || 'crono',
   ocultas: (() => { try { return JSON.parse(lsGet('cg_ocultas') || '[]'); } catch (_) { return []; } })(),
+  per: lsGet('cg_per') || 'mes',
 };
-const TRANSP_DEF = ['Eugenio', 'Camión de Monti'];
 
-/* ═════════ LECTURA ═════════ */
+/* ═════════ LECTURA / ESCRITURA ═════════ */
 async function jbGet(c) {
   const r = await fetch(`https://api.jsonbin.io/v3/b/${c.bin}/latest`, { headers: jbHeaders(c, { 'X-Bin-Meta': 'false' }), cache: 'no-store' });
   if (!r.ok) throw new Error('JSONBin HTTP ' + r.status);
@@ -276,16 +354,31 @@ async function gistPatch(files) {
   const r = await fetch('https://api.github.com/gists/' + c.gistId, { method: 'PATCH', headers: { Authorization: 'token ' + c.token, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify({ files }) });
   if (!r.ok) throw new Error('No se pudo guardar en el Gist (HTTP ' + r.status + ')');
 }
-// pedidos del Gist de PET vienen con nombres cortos
+// los pedidos del Gist de PET vienen con nombres cortos
 const PED_REV = { fi: 'fechaIngreso', fe: 'fechaEntrega', cl: 'cliente', med: 'medida', col: 'color', kp: 'kgPedidos', kr: 'kgReales', a: 'ancho', e: 'espesor', ew: 'estadoWorkflow', prd: 'producto', no: 'nroOP', pdt: 'productoTipo', dc: 'destinoCodigo', ns: 'nroSolicitud' };
 function pedLargo(p) { if (!p || 'cliente' in p) return p; const o = {}; for (const k in p) o[PED_REV[k] || k] = p[k]; return o; }
 function parseCrono(txt) { try { const o = JSON.parse(txt || '{}'); return { planificacion: o.planificacion || {}, planificacionEliminados: o.planificacionEliminados || {} }; } catch (_) { return { planificacion: {}, planificacionEliminados: {} }; } }
-function parseViajes(txt) { let o = {}; try { o = JSON.parse(txt || '{}'); } catch (_) {} return { viajes: o.viajes || [], viajesEliminados: o.viajesEliminados || {}, transportes: (o.transportes && o.transportes.length) ? o.transportes : TRANSP_DEF.slice() }; }
 
-async function cargarTermo() { S.load.ter = true; try { S.ter = await jbGet(termoCfg()); S.err.ter = ''; } catch (e) { S.err.ter = e.message; } S.load.ter = false; }
-async function cargarLam() { S.load.lam = true; try { S.lam = await jbGet(lamCfg()); S.err.lam = ''; } catch (e) { S.err.lam = e.message; } S.load.lam = false; }
+// viajes.json (en el Gist de PET). v2: cada viaje tiene ida (Chivilcoy→Lanús) y vuelta (Lanús→Chivilcoy)
+const TR_ALIAS = { 'camión de monti': 'Monti', 'camion de monti': 'Monti', 'monti': 'Monti', 'aguirre': 'Aguirre', 'eugenio': 'Eugenio' };
+function normTr(t) { return TR_ALIAS[String(t || '').trim().toLowerCase()] || String(t || '').trim(); }
+function migrarViaje(v) {
+  if (v.ida || v.vuelta) return v;
+  // formato v1: fecha / hora / lleva / trae / pallets
+  const o = { id: v.id, transporte: normTr(v.transporte), estado: v.estado === 'confirmado' ? 'programado' : (v.estado || 'programado'), nota: v.nota || '', creado: v.creado, mod: v.mod,
+    ida: { fecha: v.fecha, hora: v.hora || '', carga: v.lleva || '', pos: +v.pallets || '', kg: '' },
+    vuelta: { fecha: v.fecha, hora: '', carga: v.trae || '', pos: '', kg: '' } };
+  return o;
+}
+function parseViajes(txt) {
+  let o = {}; try { o = JSON.parse(txt || '{}'); } catch (_) {}
+  const capacidades = Object.assign({}, CAP_DEF, o.capacidades || {});
+  return { viajes: (o.viajes || []).map(migrarViaje), viajesEliminados: o.viajesEliminados || {}, capacidades };
+}
+
+async function cargarTermo() { try { S.ter = await jbGet(termoCfg()); S.err.ter = ''; } catch (e) { S.err.ter = e.message; } }
+async function cargarLam() { try { S.lam = await jbGet(lamCfg()); S.err.lam = ''; } catch (e) { S.err.lam = e.message; } }
 async function cargarGist(conPedidos) {
-  S.load.pet = S.load.via = true;
   try {
     const gj = await gistGet();
     S.pet = parseCrono(await gistFile(gj, 'cronograma.json'));
@@ -301,7 +394,6 @@ async function cargarGist(conPedidos) {
     }
     S.err.pet = S.err.via = '';
   } catch (e) { S.err.pet = S.err.via = e.message === 'SIN_GIST' ? 'Falta conectar' : e.message; }
-  S.load.pet = S.load.via = false;
 }
 let cargando = false, ultCarga = 0;
 async function cargarTodo(full) {
@@ -310,18 +402,22 @@ async function cargarTodo(full) {
   cargando = false; ultCarga = Date.now(); render();
 }
 
-/* ═════════ NORMALIZACIÓN: todo lo de la semana en una lista ═════════ */
+/* ═════════ QUÉ HAY CADA DÍA ═════════ */
 function petPed(id) { return S.petPedidos.find(p => p.id === id) || null; }
 function lamOc(id) { return ((S.lam && S.lam.ocs) || []).find(o => o.id === id) || null; }
 const TER_EVT = { MANT: { lbl: 'Mantenimiento', ic: '🔧' }, MATRIZ: { lbl: 'Cambio de matriz', ic: '🔁' }, ROTURA: { lbl: 'Rotura', ic: '⚠️' }, SINBOB: { lbl: 'Sin bobinas', ic: '📦' } };
 const TER_PRODS = ['F40', 'F41', 'F43', 'F50', 'F61', 'F63', 'E900', 'T900', 'S900', 'E910'];
 const TER_TURNOS = { M1: 'M1 · 07–16', M2: 'M2 · 07–19', N: 'Noche · 19–07' };
 const ST_PET = { pendiente: '⏳ Pendiente', curso: '🔄 En curso', completado: '✅ Completado', demorado: '⚠️ Demorado' };
-const ST_VIA = { programado: 'Programado', confirmado: 'Confirmado', realizado: 'Realizado', cancelado: 'Cancelado' };
+const ST_VIA = { programado: 'Programado', realizado: 'Realizado', cancelado: 'Cancelado' };
 
+function viajesVivos() { return S.via ? S.via.viajes.filter(v => !S.via.viajesEliminados[v.id]) : []; }
 function items(fecha, area) {
   const out = [];
-  if (area === 'via' && S.via) S.via.viajes.filter(v => v.fecha === fecha && !S.via.viajesEliminados[v.id]).sort((a, b) => (a.hora || '').localeCompare(b.hora || '')).forEach(v => out.push({ src: 'via', o: v }));
+  if (area === 'via') {
+    viajesVivos().forEach(v => ['ida', 'vuelta'].forEach(l => { if (v[l] && v[l].fecha === fecha) out.push({ src: 'via', o: v, leg: l }); }));
+    out.sort((a, b) => (a.o[a.leg].hora || '').localeCompare(b.o[b.leg].hora || ''));
+  }
   if (area === 'pet' && S.pet) {
     const d = S.pet.planificacion[fecha]; const tomb = S.pet.planificacionEliminados || {};
     ((d && d.ops) || []).filter(op => !tomb[op.id]).sort((a, b) => (a.prioridad || 0) - (b.prioridad || 0)).forEach(op => out.push({ src: 'pet', o: op, fecha }));
@@ -342,110 +438,195 @@ function card(it, area) {
   const o = it.o, cls = AREA[area].cls;
   const k = `data-src="${it.src}" data-id="${esc(o.id)}" data-f="${esc(it.fecha || o.fecha || '')}"`;
   if (it.src === 'via') {
-    const canc = o.estado === 'cancelado';
-    return `<div class="it via ${canc ? 'canc' : ''}" ${k}><b>🚚 ${esc(o.transporte || 'Sin transporte')}${o.hora ? ' · ' + esc(o.hora) : ''}${o.estado && o.estado !== 'programado' ? ` <span class="tag"><span>${esc(ST_VIA[o.estado] || o.estado)}</span></span>` : ''}</b>
-      ${o.lleva ? `<div class="vrow"><em>Lleva</em><span>${esc(o.lleva)}${o.pallets ? ' · ' + esc(o.pallets) + ' pal.' : ''}</span></div>` : ''}
-      ${o.trae ? `<div class="vrow"><em>Trae</em><span>${esc(o.trae)}</span></div>` : ''}
-      ${o.nota ? `<div class="m" style="font-style:italic">${esc(o.nota)}</div>` : ''}</div>`;
+    const x = o[it.leg] || {}, ida = it.leg === 'ida', p = legOcc(o, it.leg);
+    const vacio = !legUso(o, it.leg) && !x.carga;
+    return `<div class="it via ${o.estado === 'cancelado' ? 'canc' : ''}" ${k}>
+      <div class="h"><b>🚚 ${esc(o.transporte || '—')}${x.hora ? ' · ' + esc(x.hora) : ''}</b><span class="tg ${ida ? 'ida' : 'vue'}">${ida ? 'IDA → Lanús' : 'VUELTA → Chivi'}</span></div>
+      <div class="m">${vacio ? '<i>Vacío</i>' : esc(x.carga || '')}</div>
+      <div class="k">${legUso(o, it.leg) ? uTxt(o.transporte, legUso(o, it.leg)) + ' · ' : ''}${pct(p)}${o.estado === 'realizado' ? ' · ✓' : ''}</div>${barra(p)}</div>`;
   }
   if (it.src === 'pet') {
     const p = petPed(o.pedidoId);
     const real = p ? ((S.petProd[it.fecha] || {})[o.pedidoId] || 0) : 0;
     const st = (ST_PET[o.status || 'pendiente'] || '').split(' ')[0];
-    if (!p && o.proy) return `<div class="it pet proy" ${k}><b>${esc(o.pCli || '—')} <span class="tag"><span>PROYECTADA</span></span></b><div class="m">${esc(o.pDesc || 'sin pedido')}</div><div class="k">${st} ${fmt(o.kgPlan)} kg</div>${o.notas ? `<div class="m" style="font-style:italic">${esc(o.notas)}</div>` : ''}</div>`;
-    if (!p) return `<div class="it pet" ${k}><b>OP eliminada / pedido no encontrado</b><div class="k">${fmt(o.kgPlan)} kg</div></div>`;
-    return `<div class="it pet" ${k}><b>${esc(p.cliente)}</b><div class="m">OP ${esc(p.nroOP || '-')} · ${esc(p.ancho || '-')}×${esc(p.espesor || '-')}${p.color ? ' · ' + esc(p.color) : ''}</div><div class="k">${st} ${fmt(o.kgPlan)} kg${real ? ` · <span style="color:var(--green-d)">${fmt(real)} real</span>` : ''}</div>${o.notas ? `<div class="m" style="font-style:italic">${esc(o.notas)}</div>` : ''}</div>`;
+    if (!p && o.proy) return `<div class="it pet proy" ${k}><div class="h"><b>${esc(o.pCli || '—')}</b><span class="tg p"><span>PROYECTADA</span></span></div><div class="m">${esc(o.pDesc || 'sin pedido')}</div><div class="k">${st} ${fmt(o.kgPlan)} kg</div>${o.notas ? `<div class="n">${esc(o.notas)}</div>` : ''}</div>`;
+    if (!p) return `<div class="it pet" ${k}><b>Pedido no encontrado</b><div class="k">${fmt(o.kgPlan)} kg</div></div>`;
+    return `<div class="it pet" ${k}><div class="h"><b>${esc(p.cliente)}</b><span>${st}</span></div><div class="m">OP ${esc(p.nroOP || '-')} · ${esc(p.ancho || '-')}×${esc(p.espesor || '-')}${p.color ? ' · ' + esc(p.color) : ''}</div><div class="k">${fmt(o.kgPlan)} kg${real ? ` · <span style="color:var(--ok)">${fmt(real)} real</span>` : ''}</div>${o.notas ? `<div class="n">${esc(o.notas)}</div>` : ''}</div>`;
   }
   if (it.src === 'ter') {
     const ev = TER_EVT[o.prod];
     const ops = (o.operarios || []).map(n => n.split(' ')[0]).join(', ');
-    return `<div class="it ${ev ? 'evt' : 'ter'}" ${k}><b>${ev ? ev.ic + ' ' + esc(ev.lbl) : esc(o.prod)} <span class="m">· ${esc(o.turno)}</span></b>${o.meta ? `<div class="k">${o.meta} pallets</div>` : ''}${ops ? `<div class="m">👷 ${esc(ops)}</div>` : ''}${o.obs ? `<div class="m" style="font-style:italic">${esc(o.obs)}</div>` : ''}</div>`;
+    return `<div class="it ${ev ? 'evt' : 'ter'}" ${k}><div class="h"><b>${ev ? ev.ic + ' ' + esc(ev.lbl) : esc(o.prod)}</b><span class="tg gr">${esc(o.turno)}</span></div>${o.meta ? `<div class="k">${o.meta} pallets</div>` : ''}${ops ? `<div class="m">👷 ${esc(ops)}</div>` : ''}${o.obs ? `<div class="n">${esc(o.obs)}</div>` : ''}</div>`;
   }
   if (it.src === 'lam') {
     const oc = o.ocId ? lamOc(o.ocId) : null;
-    const tit = oc ? `${esc(oc.cliente)} · OC ${esc(oc.nro)}` : o.proy ? `${esc(o.pCli || '—')} <span class="tag"><span>PROYECTADA</span></span>` : esc(o.nota || 'Tarea');
-    const sub = oc ? (oc.desc || '') : o.proy ? (o.pDesc || 'sin OC') : '';
-    return `<div class="it ${o.ocId || o.proy ? cls : 'evt'} ${o.proy && !o.ocId ? 'proy' : ''}" ${k}><b>${tit}</b>${sub ? `<div class="m">${esc(sub)}</div>` : ''}<div class="k">${esc(o.turno || '')}${o.kgObj ? ' · ' + fmt(o.kgObj) + ' kg' : ''}</div>${o.operario ? `<div class="m">👷 ${esc(o.operario)}</div>` : ''}${(oc || o.proy) && o.nota ? `<div class="m" style="font-style:italic">${esc(o.nota)}</div>` : ''}</div>`;
+    const tit = oc ? `${esc(oc.cliente)}` : o.proy ? esc(o.pCli || '—') : esc(o.nota || 'Tarea');
+    const sub = oc ? `OC ${esc(oc.nro)}${oc.desc ? ' · ' + esc(oc.desc) : ''}` : o.proy ? esc(o.pDesc || 'sin OC') : '';
+    return `<div class="it ${o.ocId || o.proy ? cls : 'evt'} ${o.proy && !o.ocId ? 'proy' : ''}" ${k}><div class="h"><b>${tit}</b>${o.proy && !o.ocId ? '<span class="tg p"><span>PROYECTADA</span></span>' : `<span class="tg gr">${esc(o.turno || '')}</span>`}</div>${sub ? `<div class="m">${sub}</div>` : ''}${o.kgObj ? `<div class="k">${fmt(o.kgObj)} kg</div>` : ''}${o.operario ? `<div class="m">👷 ${esc(o.operario)}</div>` : ''}${(oc || o.proy) && o.nota ? `<div class="n">${esc(o.nota)}</div>` : ''}</div>`;
   }
   return '';
 }
 
-/* ═════════ RENDER ═════════ */
+/* ═════════ RENDER GENERAL ═════════ */
+const TABS = [{ id: 'crono', lbl: '📅 Cronograma' }, { id: 'viajes', lbl: '🚚 Viajes' }, { id: 'anal', lbl: '📊 Análisis de viajes' }];
 function renderSync() {
   const lbl = { via: 'Viajes', pet: 'PET', ter: 'Termo', lam: 'Laminado' };
-  $('sync').innerHTML = Object.keys(lbl).map(k => {
-    const e = S.err[k], l = cargando;
-    return `<span class="sb ${l ? 'load' : e ? 'err' : 'ok'}" title="${esc(e)}">${lbl[k]}${e ? ': ' + esc(e) : ''}</span>`;
-  }).join('') + `<button class="btn sm noprint" onclick="cargarTodo(true)" title="Actualizar">⟳</button>`;
+  $('sync').innerHTML = Object.keys(lbl).map(k => { const e = S.err[k]; return `<span class="sb ${cargando ? 'load' : e ? 'err' : ''}" title="${esc(e)}">${lbl[k]}${e ? ': ' + esc(e) : ''}</span>`; }).join('')
+    + `<button class="btn sm noprint" onclick="cargarTodo(true)" title="Actualizar">⟳</button>`;
 }
-function dias() { return Array.from({ length: 7 }, (_, i) => addD(S.ini, i)); }
-function areasVis() { return AREAS.filter(a => !S.ocultas.includes(a.id)); }
-
+function irTab(t) { S.tab = t; lsSet('cg_tab', t); render(); window.scrollTo(0, 0); }
 function render() {
   renderSync();
-  if (S.err.pet === 'Falta conectar' && !S.lam && !S.ter) return renderConexion();
-  const ds = dias(), hoy = hoyISO();
-  let h = `<div class="bar">
-    <button class="btn" onclick="semana(-1)">◀</button>
-    <button class="btn" onclick="semana(0)">Hoy</button>
-    <button class="btn" onclick="semana(1)">▶</button>
-    <span class="wk">Semana del ${dm(ds[0])} al ${dm(ds[6])}</span>
+  $('tabs').innerHTML = TABS.map(t => `<button class="tab ${S.tab === t.id ? 'on' : ''}" onclick="irTab('${t.id}')">${t.lbl}</button>`).join('');
+  if (S.err.pet === 'Falta conectar' && !S.lam && !S.ter) { $('app').innerHTML = ''; return renderConexion(); }
+  $('app').innerHTML = S.tab === 'viajes' ? tabViajes() : S.tab === 'anal' ? tabAnalisis() : tabCrono();
+  if (S.tab === 'crono' && window.innerWidth < 760 && !render._scrolled && ultCarga) { const e = document.querySelector('.day.hoy'); if (e) { render._scrolled = true; setTimeout(() => e.scrollIntoView({ block: 'start' }), 50); } }
+}
+function errArea(id) { const k = id === 'via' ? 'via' : id === 'pet' ? 'pet' : id === 'ter' ? 'ter' : 'lam'; return S.err[k] || ''; }
+
+/* ═════════ PESTAÑA CRONOGRAMA ═════════ */
+function dias() { return Array.from({ length: 7 }, (_, i) => addD(S.ini, i)); }
+function areasVis() { return AREAS.filter(a => !S.ocultas.includes(a.id)); }
+function semana(n) { S.ini = n === 0 ? lunesDe(hoyISO()) : addD(S.ini, 7 * n); render(); }
+function toggleArea(id) { const i = S.ocultas.indexOf(id); if (i >= 0) S.ocultas.splice(i, 1); else S.ocultas.push(id); lsSet('cg_ocultas', JSON.stringify(S.ocultas)); render(); }
+function tabCrono() {
+  const ds = dias(), hoy = hoyISO(), dflt = ds.includes(hoy) ? hoy : ds[0];
+  let nProd = 0, nViaj = new Set(), kgPet = 0;
+  ds.forEach(d => { AREAS.forEach(a => items(d, a.id).forEach(it => { if (it.src === 'via') { if (it.o.estado !== 'cancelado') nViaj.add(it.o.id); } else { nProd++; if (it.src === 'pet') kgPet += +it.o.kgPlan || 0; } })); });
+  let h = `<div class="hero"><div><div class="s">Semana del ${dLargo(ds[0])} al ${dLargo(ds[6])} ${ds[6].slice(0, 4)}</div><div class="t">Cronograma de planta · Lanús y Chivilcoy</div></div>
+    <div class="r"><div><small>Producciones</small><b>${nProd}</b></div><div><small>Kg PET plan.</small><b>${fmt(kgPet)}</b></div><div><small>Viajes</small><b>${nViaj.size}</b></div></div></div>
+  <div class="bar">
+    <button class="btn ic" onclick="semana(-1)">◀</button><button class="btn" onclick="semana(0)">Hoy</button><button class="btn ic" onclick="semana(1)">▶</button>
     <span style="flex:1"></span>
-    <div class="seg"><button class="${S.vista === 'semana' ? 'on' : ''}" onclick="vista('semana')">Semana</button><button class="${S.vista === 'agenda' ? 'on' : ''}" onclick="vista('agenda')">Día por día</button></div>
-    <button class="btn via" onclick="nuevo('via','${ds.includes(hoy) ? hoy : ds[0]}')">🚚 Nuevo viaje</button>
-    <button class="btn pri" onclick="nuevo(null,'${ds.includes(hoy) ? hoy : ds[0]}')">＋ Agregar</button>
-    <button class="btn" onclick="whatsapp()" title="Copiar la semana para WhatsApp">📋 WhatsApp</button>
-    <button class="btn" onclick="window.print()">🖨</button>
+    <button class="btn via" onclick="nuevo('via','${dflt}')">🚚 Nuevo viaje</button>
+    <button class="btn pri" onclick="nuevo(null,'${dflt}')">＋ Agregar</button>
+    <button class="btn" onclick="whatsapp()">📋 WhatsApp</button>
+    <button class="btn ic" onclick="window.print()" title="Imprimir">🖨</button>
   </div>
-  <div class="bar"><div class="chips">${AREAS.map(a => `<span class="fchip ${S.ocultas.includes(a.id) ? 'off' : ''}" onclick="toggleArea('${a.id}')"><i style="background:${a.col}"></i>${a.nom}</span>`).join('')}</div>
-  ${S.err.pet === 'Falta conectar' ? `<button class="btn sm" onclick="renderConexion()">Conectar PET / Viajes</button>` : ''}</div>`;
-  h += proximoViaje();
-  h += `<div class="wrap">` + (S.vista === 'semana' ? grilla(ds, hoy) : agenda(ds, hoy)) + `</div>`;
-  $('app').innerHTML = h;
-  if (S.vista === 'agenda' && !render._scrolled && ultCarga) { const e = document.querySelector('.ag-day.hoy'); if (e) { render._scrolled = true; setTimeout(() => e.scrollIntoView({ block: 'start' }), 50); } }
+  <div class="bar" style="margin-top:-4px"><div class="chips">${AREAS.map(a => `<span class="fchip ${S.ocultas.includes(a.id) ? 'off' : ''}" onclick="toggleArea('${a.id}')"><i style="background:${a.col}"></i>${a.nom}</span>`).join('')}</div>
+  ${S.err.pet === 'Falta conectar' ? `<button class="btn sm" onclick="renderConexion()">Conectar PET / Viajes</button>` : ''}</div>
+  <div class="week">`;
+  ds.forEach(d => {
+    const bloques = areasVis().map(a => {
+      const its = items(d, a.id); if (!its.length) return '';
+      return `<div class="ar"><div class="al" style="color:${a.col}"><span>${a.nom}</span><span class="p noprint" title="Agregar" onclick="nuevo('${a.id}','${d}')">＋</span></div>${its.map(it => card(it, a.id)).join('')}</div>`;
+    }).join('');
+    const nv = items(d, 'via').length, np = areasVis().filter(a => a.id !== 'via').reduce((s, a) => s + items(d, a.id).length, 0);
+    h += `<div class="day ${d === hoy ? 'hoy' : ''} ${dow(d) === 0 ? 'dom' : ''}">
+      <div class="dh"><span><b>${dLargo(d)}</b>${d === hoy ? '<span class="hb">HOY</span>' : ''}</span><button class="add" onclick="nuevo(null,'${d}')">+ Agregar</button></div>
+      <div class="db">${bloques || '<div class="empty">Sin nada cargado</div>'}</div>
+      <div class="df"><span>${np} producc.</span><span>${nv ? '🚚 ' + nv : ''}</span></div></div>`;
+  });
+  return h + `</div>`;
 }
-function proximoViaje() {
-  if (!S.via) return '';
-  const hoy = hoyISO();
-  const v = S.via.viajes.filter(x => !S.via.viajesEliminados[x.id] && x.fecha >= hoy && x.estado !== 'cancelado' && x.estado !== 'realizado').sort((a, b) => (a.fecha + (a.hora || '')).localeCompare(b.fecha + (b.hora || '')))[0];
-  if (!v) return `<div class="next"><span>🚚 No hay viajes programados desde hoy.</span><button class="btn sm" onclick="nuevo('via','${hoy}')">Programar viaje</button></div>`;
-  return `<div class="next" style="cursor:pointer" data-src="via" data-id="${esc(v.id)}"><b>🚚 Próximo viaje</b><span>${v.fecha === hoy ? 'Hoy' : DIASL[dow(v.fecha)] + ' ' + dm(v.fecha)}${v.hora ? ' ' + esc(v.hora) : ''} · <b style="color:var(--text)">${esc(v.transporte || 'sin transporte')}</b></span>${v.lleva ? `<span>⬆ Lleva: ${esc(v.lleva)}</span>` : ''}${v.trae ? `<span>⬇ Trae: ${esc(v.trae)}</span>` : ''}</div>`;
+
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-src][data-id]'); if (!el || e.target.closest('.add,.p')) return;
+  editar(el.getAttribute('data-src'), el.getAttribute('data-id'), el.getAttribute('data-f'));
+});
+
+/* ═════════ PESTAÑA VIAJES ═════════ */
+function fechaViaje(v) { return (v.ida && v.ida.fecha) || (v.vuelta && v.vuelta.fecha) || ''; }
+function vcard(v) {
+  const leg = l => { const x = v[l] || {}, p = legOcc(v, l), u = legUso(v, l), ida = l === 'ida';
+    return `<div class="leg"><div class="lt" style="color:${ida ? 'var(--via)' : '#2f5fc4'}"><span>${ida ? '⬆ Ida · Chivilcoy → Lanús' : '⬇ Vuelta · Lanús → Chivilcoy'}</span></div>
+      <div class="lf">${x.fecha ? dLargo(x.fecha) : '—'}${x.hora ? ' · ' + esc(x.hora) : ''}</div>
+      <div class="lc">${x.carga ? esc(x.carga) : (u ? '' : '<i style="color:var(--text3)">Vacío</i>')}</div>
+      <div class="lv"><span>${u ? uTxt(v.transporte, u) : '—'}</span><span class="tg ${occCls(p)}">${pct(p)}</span></div>${barra(p)}</div>`; };
+  const tot = (legOcc(v, 'ida') + legOcc(v, 'vuelta')) / 2;
+  return `<div class="vc" data-src="via" data-id="${esc(v.id)}">
+    <div class="vh"><div><b>🚚 ${esc(v.transporte || '—')}</b><small>Capacidad ${capTxt(v.transporte)}</small></div>
+      <span class="tg ${v.estado === 'realizado' ? 'ok' : v.estado === 'cancelado' ? 'bad' : 'gr'}">${ST_VIA[v.estado] || 'Programado'}</span></div>
+    <div class="legs">${leg('ida')}${leg('vuelta')}</div>
+    <div class="vf"><span>${v.nota ? '📝 ' + esc(v.nota) : ''}</span><span>Ocupación del viaje <b class="mono" style="color:${occCol(tot)}">${pct(isNaN(tot) ? null : tot)}</b></span></div></div>`;
 }
-function grilla(ds, hoy) {
-  let h = `<div class="grid"><table class="g"><thead><tr><th style="width:150px">Área</th>${ds.map(d => `<th class="${d === hoy ? 'hoy' : ''} ${dow(d) === 0 ? 'dom' : ''}">${DIAS[dow(d)]} ${dm(d)}${d === hoy ? ' · hoy' : ''}<small>${totDia(d)}</small></th>`).join('')}</tr></thead><tbody>`;
-  areasVis().forEach(a => {
-    const err = errArea(a.id);
-    h += `<tr><td class="area"><span class="dot" style="background:${a.col}"></span>${a.nom}<small>${a.sub}${err ? ` · <span style="color:var(--bad)">${esc(err)}</span>` : ''}</small></td>`;
-    ds.forEach(d => {
-      const its = items(d, a.id);
-      h += `<td class="${d === hoy ? 'hoy' : ''} ${dow(d) === 0 ? 'dom' : ''}"><div class="cell">${its.map(it => card(it, a.id)).join('')}${err ? '' : `<div class="add" onclick="nuevo('${a.id}','${d}')">＋</div>`}</div></td>`;
-    });
-    h += `</tr>`;
+function tabViajes() {
+  const hoy = hoyISO(), vs = viajesVivos().slice().sort((a, b) => fechaViaje(a).localeCompare(fechaViaje(b)));
+  const prox = vs.filter(v => v.estado === 'programado' && fechaViaje(v) >= hoy);
+  const atras = vs.filter(v => v.estado === 'programado' && fechaViaje(v) < hoy);
+  const hechos = vs.filter(v => v.estado !== 'programado' && fechaViaje(v) >= addD(hoy, -45)).reverse();
+  let h = `<div class="hero via"><div><div class="s">Chivilcoy ↔ Lanús</div><div class="t">Viajes</div></div>
+    <div class="r"><div><small>Próximos</small><b>${prox.length}</b></div><div><small>Sin cerrar</small><b>${atras.length}</b></div><div><small>Realizados 45 días</small><b>${hechos.filter(v => v.estado === 'realizado').length}</b></div></div></div>
+    <div class="bar"><span class="note">Capacidad: ${Object.keys(caps()).map(t => `<b>${esc(t)}</b> ${capTxt(t)}`).join(' · ')}</span><span style="flex:1"></span><button class="btn via" onclick="nuevo('via','${hoy}')">🚚 Nuevo viaje</button></div>`;
+  if (S.err.via) return h + `<div class="info">Sin conexión con viajes: ${esc(S.err.via)}</div>`;
+  if (atras.length) h += `<div class="sec"><h3 style="color:var(--mid)">Pasados sin cerrar · marcalos realizados o cancelados</h3></div><div class="vgrid">${atras.map(vcard).join('')}</div>`;
+  h += `<div class="sec"><h3>Próximos viajes</h3></div>` + (prox.length ? `<div class="vgrid">${prox.map(vcard).join('')}</div>` : `<div class="info">No hay viajes programados.</div>`);
+  h += `<div class="sec"><h3>Últimos 45 días</h3></div>` + (hechos.length ? `<div class="vgrid">${hechos.map(vcard).join('')}</div>` : `<div class="info">Todavía no hay viajes realizados.</div>`);
+  return h;
+}
+
+/* ═════════ PESTAÑA ANÁLISIS DE VIAJES ═════════ */
+const PERS = { mes: 'Este mes', mesant: 'Mes anterior', d30: 'Últimos 30 días', d90: 'Últimos 90 días', anio: 'Este año' };
+function rango(per) {
+  const hoy = hoyISO(), y = +hoy.slice(0, 4), m = +hoy.slice(5, 7);
+  if (per === 'mes') return [hoy.slice(0, 8) + '01', hoy];
+  if (per === 'mesant') { const pm = m === 1 ? 12 : m - 1, py = m === 1 ? y - 1 : y; const fin = addD(`${y}-${pad2(m)}-01`, -1); return [`${py}-${pad2(pm)}-01`, fin]; }
+  if (per === 'd30') return [addD(hoy, -29), hoy];
+  if (per === 'd90') return [addD(hoy, -89), hoy];
+  return [`${y}-01-01`, hoy];
+}
+function setPer(p) { S.per = p; lsSet('cg_per', p); render(); }
+function tabAnalisis() {
+  const [d1, d2] = rango(S.per), hoy = hoyISO();
+  // cuentan los viajes no cancelados con fecha dentro del período y ya pasados (realizados o pasados sin cerrar)
+  const vs = viajesVivos().filter(v => v.estado !== 'cancelado' && fechaViaje(v) >= d1 && fechaViaje(v) <= d2 && fechaViaje(v) <= hoy && caps()[v.transporte]);
+  const sinCerrar = vs.filter(v => v.estado !== 'realizado').length;
+  const prom = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : null;
+  const oIda = vs.map(v => legOcc(v, 'ida')), oVue = vs.map(v => legOcc(v, 'vuelta'));
+  const oTot = vs.map((v, i) => (oIda[i] + oVue[i]) / 2);
+  const vacias = vs.filter(v => !legUso(v, 'vuelta') && !(v.vuelta && v.vuelta.carga)).length;
+  const kpi = (val, l, s, col) => `<div class="kpi"><div class="v" style="color:${col || 'var(--text)'}">${val}</div><div class="l">${l}</div>${s ? `<div class="s">${s}</div>` : ''}</div>`;
+  let h = `<div class="hero via"><div><div class="s">${PERS[S.per]} · ${dm(d1)} al ${dm(d2)}</div><div class="t">Análisis de viajes · qué tan llenos van los camiones</div></div>
+    <div class="r"><div><small>Ocupación promedio</small><b>${pct(prom(oTot))}</b></div></div></div>
+    <div class="bar"><div class="seg">${Object.keys(PERS).map(p => `<button class="${S.per === p ? 'on' : ''}" onclick="setPer('${p}')">${PERS[p]}</button>`).join('')}</div><span style="flex:1"></span><button class="btn" onclick="formCaps()">⚙ Capacidades</button></div>`;
+  if (S.err.via) return h + `<div class="info">Sin conexión con viajes: ${esc(S.err.via)}</div>`;
+  h += `<div class="kpis">
+    ${kpi(vs.length, 'Viajes', sinCerrar ? `${sinCerrar} sin marcar realizado` : 'todos cerrados')}
+    ${kpi(pct(prom(oTot)), 'Ocupación total', 'ida + vuelta', occCol(prom(oTot)))}
+    ${kpi(pct(prom(oIda)), 'Ocupación ida', 'Chivilcoy → Lanús', occCol(prom(oIda)))}
+    ${kpi(pct(prom(oVue)), 'Ocupación vuelta', 'Lanús → Chivilcoy', occCol(prom(oVue)))}
+    ${kpi(vacias, 'Vueltas vacías', vs.length ? Math.round(vacias / vs.length * 100) + '% de los viajes' : '', vacias ? 'var(--bad)' : 'var(--ok)')}
+  </div>`;
+  // por transporte
+  h += `<div class="sec"><h3>Por transporte</h3><span class="note">Verde ≥ 85% · amarillo 60–85% · rojo &lt; 60%</span></div><div class="tcards">`;
+  Object.keys(caps()).forEach(t => {
+    const xs = vs.filter(v => v.transporte === t), c = caps()[t];
+    const pi = prom(xs.map(v => legOcc(v, 'ida'))), pv = prom(xs.map(v => legOcc(v, 'vuelta'))), pt = prom(xs.map(v => (legOcc(v, 'ida') + legOcc(v, 'vuelta')) / 2));
+    const usado = xs.reduce((s, v) => s + legUso(v, 'ida') + legUso(v, 'vuelta'), 0), disp = xs.length * 2 * c.cap;
+    h += `<div class="tc"><div class="th"><b>🚚 ${esc(t)}</b><small>${capTxt(t)} por tramo</small></div>
+      <div class="big" style="color:${occCol(pt)}">${pct(pt)}</div><div class="note">${xs.length} viaje${xs.length === 1 ? '' : 's'} en el período</div>
+      ${barra(pt)}
+      <div class="row"><span>Ida</span><b class="mono">${pct(pi)}</b></div>${barra(pi)}
+      <div class="row"><span>Vuelta</span><b class="mono">${pct(pv)}</b></div>${barra(pv)}
+      <div class="row"><span>Movido / disponible</span><b class="mono">${uTxt(t, usado)} de ${uTxt(t, disp)}</b></div>
+      <div class="row"><span>Lugar sin usar</span><b class="mono" style="color:${disp - usado > 0 ? 'var(--bad)' : 'var(--ok)'}">${uTxt(t, Math.max(0, disp - usado))}</b></div></div>`;
+  });
+  h += `</div>`;
+  // detalle
+  h += `<div class="sec"><h3>Detalle de viajes</h3></div>`;
+  if (!vs.length) return h + `<div class="info">No hay viajes en el período. Cargalos desde la pestaña Viajes con las posiciones (o kg) que llevó cada tramo.</div>`;
+  h += `<div class="box"><table class="t"><thead><tr><th>Fecha</th><th>Transporte</th><th>Ida · lleva</th><th>Ocup. ida</th><th>Vuelta · trae</th><th>Ocup. vuelta</th><th>Total</th></tr></thead><tbody>`;
+  vs.slice().sort((a, b) => fechaViaje(b).localeCompare(fechaViaje(a))).forEach(v => {
+    const pi = legOcc(v, 'ida'), pv = legOcc(v, 'vuelta'), pt = (pi + pv) / 2;
+    const pb = p => `<div class="pb">${barra(p)}<span>${pct(p)}</span></div>`;
+    h += `<tr class="cl" data-src="via" data-id="${esc(v.id)}"><td>${dLargo(fechaViaje(v))}${v.estado !== 'realizado' ? ' <span class="tg mid">sin cerrar</span>' : ''}</td><td><b>${esc(v.transporte)}</b></td>
+      <td>${esc((v.ida && v.ida.carga) || '—')}<div class="note">${uTxt(v.transporte, legUso(v, 'ida'))}</div></td><td>${pb(pi)}</td>
+      <td>${esc((v.vuelta && v.vuelta.carga) || (legUso(v, 'vuelta') ? '' : 'Vacío'))}<div class="note">${uTxt(v.transporte, legUso(v, 'vuelta'))}</div></td><td>${pb(pv)}</td>
+      <td><span class="tg ${occCls(pt)}" style="font-size:12px">${pct(pt)}</span></td></tr>`;
   });
   return h + `</tbody></table></div>`;
 }
-function agenda(ds, hoy) {
-  return ds.map(d => {
-    const bloques = areasVis().map(a => {
-      const its = items(d, a.id); if (!its.length) return '';
-      return `<div class="ag-a"><div class="t" style="color:${a.col}"><span>${a.nom}</span><span class="add touch" style="margin:0;padding:1px 8px" onclick="nuevo('${a.id}','${d}')">＋</span></div><div class="its">${its.map(it => card(it, a.id)).join('')}</div></div>`;
-    }).join('');
-    return `<div class="ag-day ${d === hoy ? 'hoy' : ''}"><div class="ag-h"><span>${DIASL[dow(d)]} ${dm(d)}${d === hoy ? ' · hoy' : ''}</span><span><small>${totDia(d)}</small> <button class="btn sm" onclick="nuevo(null,'${d}')">＋</button></span></div>${bloques || '<div class="empty">Sin nada cargado</div>'}</div>`;
-  }).join('');
+function formCaps() {
+  const c = caps();
+  modal('⚙ Capacidad de cada transporte', Object.keys(c).map(t => `
+    <div class="f"><label>${esc(t)}</label><input type="number" min="0" class="capi" data-t="${esc(t)}" value="${c[t].cap}"></div>
+    <div class="f"><label>Unidad</label><select class="capu" data-t="${esc(t)}"><option value="pos" ${c[t].u === 'pos' ? 'selected' : ''}>Posiciones</option><option value="kg" ${c[t].u === 'kg' ? 'selected' : ''}>Kg</option></select></div>`).join('')
+    + `<div class="info">Se usa para calcular la ocupación de cada tramo (ida y vuelta).</div>`, pieForm('guardarCaps()'));
 }
-function totDia(d) {
-  const nv = items(d, 'via').filter(x => x.o.estado !== 'cancelado').length;
-  return nv ? `🚚 ${nv} viaje${nv > 1 ? 's' : ''}` : '';
+async function guardarCaps() {
+  const nc = {}; document.querySelectorAll('.capi').forEach(i => { const t = i.getAttribute('data-t'); nc[t] = { cap: +i.value || 0, u: document.querySelector(`.capu[data-t="${t}"]`).value }; });
+  await escribir('Viajes', () => viaWrite(d => { d.capacidades = nc; }));
 }
-function errArea(id) { const k = id === 'via' ? 'via' : id === 'pet' ? 'pet' : id === 'ter' ? 'ter' : 'lam'; return S.err[k] || ''; }
-function semana(n) { S.ini = n === 0 ? lunesDe(hoyISO()) : addD(S.ini, 7 * n); render(); }
-function vista(v) { S.vista = v; lsSet('cg_vista', v); render(); }
-function toggleArea(id) { const i = S.ocultas.indexOf(id); if (i >= 0) S.ocultas.splice(i, 1); else S.ocultas.push(id); lsSet('cg_ocultas', JSON.stringify(S.ocultas)); render(); }
-
-document.addEventListener('click', e => {
-  const el = e.target.closest('[data-src][data-id]'); if (!el || e.target.closest('.add')) return;
-  editar(el.getAttribute('data-src'), el.getAttribute('data-id'), el.getAttribute('data-f'));
-});
 
 /* ═════════ WHATSAPP ═════════ */
 function whatsapp() {
@@ -453,20 +634,15 @@ function whatsapp() {
   let t = `*Winflex · Cronograma general*\nSemana del ${dm(ds[0])} al ${dm(ds[6])}\n`;
   ds.forEach(d => {
     let bl = '';
-    areasVis().forEach(a => {
-      const its = items(d, a.id); if (!its.length) return;
-      bl += `_${a.nom}_\n`;
-      its.forEach(it => { bl += '• ' + txtItem(it) + '\n'; });
-    });
+    areasVis().forEach(a => { const its = items(d, a.id); if (!its.length) return; bl += `_${a.nom}_\n`; its.forEach(it => { bl += '• ' + txtItem(it) + '\n'; }); });
     if (bl) t += `\n*${DIASL[dow(d)]} ${dm(d)}*\n` + bl;
   });
   const fin = () => toast('Copiado — pegalo en WhatsApp');
-  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(fin, () => prompt('Copiá el texto:', t));
-  else prompt('Copiá el texto:', t);
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(fin, () => prompt('Copiá el texto:', t)); else prompt('Copiá el texto:', t);
 }
 function txtItem(it) {
   const o = it.o;
-  if (it.src === 'via') return `${o.transporte || 'Viaje'}${o.hora ? ' ' + o.hora : ''}${o.estado === 'cancelado' ? ' (CANCELADO)' : ''}${o.lleva ? ' — lleva: ' + o.lleva : ''}${o.pallets ? ' (' + o.pallets + ' pal.)' : ''}${o.trae ? ' — trae: ' + o.trae : ''}`;
+  if (it.src === 'via') { const x = o[it.leg] || {}; return `${o.transporte} ${it.leg === 'ida' ? 'IDA a Lanús' : 'VUELTA a Chivilcoy'}${x.hora ? ' ' + x.hora : ''}${o.estado === 'cancelado' ? ' (CANCELADO)' : ''}: ${x.carga || 'vacío'}${legUso(o, it.leg) ? ' (' + uTxt(o.transporte, legUso(o, it.leg)) + ')' : ''}`; }
   if (it.src === 'pet') { const p = petPed(o.pedidoId); return p ? `${p.cliente} OP ${p.nroOP || '-'} ${p.ancho || ''}x${p.espesor || ''} · ${fmt(o.kgPlan)} kg` : `${o.pCli || '?'} ${o.pDesc || ''} (proyectada) · ${fmt(o.kgPlan)} kg`; }
   if (it.src === 'ter') { const ev = TER_EVT[o.prod]; return `${o.turno} ${ev ? ev.lbl : o.prod}${o.meta ? ' · ' + o.meta + ' pal.' : ''}${(o.operarios || []).length ? ' · ' + o.operarios.join(', ') : ''}`; }
   if (it.src === 'lam') { const oc = o.ocId ? lamOc(o.ocId) : null; return `${oc ? oc.cliente + ' OC ' + oc.nro + (oc.desc ? ' ' + oc.desc : '') : o.proy ? (o.pCli || '?') + ' ' + (o.pDesc || '') + ' (proyectada)' : (o.nota || 'Tarea')} · ${o.turno || ''}${o.kgObj ? ' · ' + fmt(o.kgObj) + ' kg' : ''}${o.operario ? ' · ' + o.operario : ''}`; }
@@ -474,62 +650,79 @@ function txtItem(it) {
 }
 
 /* ═════════ MODALES ═════════ */
-function modal(titulo, cuerpo, pie) {
-  $('modal').innerHTML = `<div class="mbg" onclick="if(event.target===this)cerrar()"><div class="modal"><div class="mh"><h3>${titulo}</h3><button class="x" onclick="cerrar()">✕</button></div><div class="mb">${cuerpo}</div>${pie ? `<div class="mf">${pie}</div>` : ''}</div></div>`;
+function modal(titulo, cuerpo, pie, ancho) {
+  $('modal').innerHTML = `<div class="mbg" onclick="if(event.target===this)cerrar()"><div class="modal ${ancho ? 'w' : ''}"><div class="mh"><h3>${titulo}</h3><button class="x" onclick="cerrar()">✕</button></div><div class="mb">${cuerpo}</div>${pie ? `<div class="mf">${pie}</div>` : ''}</div></div>`;
 }
 function cerrar() { $('modal').innerHTML = ''; }
 const v = id => ($(id) ? $(id).value : '');
 const vt = id => v(id).trim();
-
+function pieForm(fnGuardar, fnBorrar) {
+  return `<div>${fnBorrar ? `<button class="btn bad" onclick="${fnBorrar}">🗑 Borrar</button>` : ''}</div><div style="display:flex;gap:8px"><button class="btn" onclick="cerrar()">Cancelar</button><button class="btn pri" onclick="${fnGuardar}">💾 Guardar</button></div>`;
+}
 function nuevo(area, fecha) {
-  if (!area) {
-    return modal(`Agregar · ${DIASL[dow(fecha)]} ${dm(fecha)}`, `<div class="area-pick">${AREAS.map(a => `<button style="border-left:4px solid ${a.col}" onclick="nuevo('${a.id}','${fecha}')">${a.id === 'via' ? '🚚 ' : ''}${a.nom}<small>${a.sub}${errArea(a.id) ? ' · sin conexión' : ''}</small></button>`).join('')}</div>`);
-  }
+  if (!area) return modal(`Agregar · ${DIASL[dow(fecha)]} ${dm(fecha)}`, `<div class="area-pick">${AREAS.map(a => `<button style="border-left:5px solid ${a.col}" onclick="nuevo('${a.id}','${fecha}')">${a.id === 'via' ? '🚚 ' : ''}${a.nom}<small>${a.sub}${errArea(a.id) ? ' · sin conexión' : ''}</small></button>`).join('')}</div>`);
   if (errArea(area)) return toast('Sin conexión con ' + AREA[area].nom + ': ' + errArea(area), true);
-  if (area === 'via') return formVia({ fecha, estado: 'programado' });
+  if (area === 'via') return formVia({ transporte: '', estado: 'programado', ida: { fecha, hora: '', carga: '', pos: '', kg: '' }, vuelta: { fecha, hora: '', carga: '', pos: '', kg: '' } });
   if (area === 'pet') return formPet({ fecha, status: 'pendiente', kgPlan: 0 }, fecha);
   if (area === 'ter') return formTer({ fecha, turno: diaTurnoTer(fecha), prod: '', meta: 0, operarios: [], obs: '' });
   return formLam({ fecha, maq: AREA[area].maq, turno: 'Todo el día', ocId: '', proy: false, pCli: '', pDesc: '', operario: '', kgObj: null, nota: '' });
 }
 function editar(src, id, f) {
-  if (src === 'via') { const o = S.via.viajes.find(x => x.id === id); if (o) formVia(JSON.parse(JSON.stringify(o))); return; }
-  if (src === 'pet') { const d = S.pet.planificacion[f]; const o = d && d.ops.find(x => x.id === id); if (o) formPet(JSON.parse(JSON.stringify(o)), f); return; }
-  if (src === 'ter') { const o = (S.ter.cronograma || []).find(x => x.id === id); if (o) formTer(JSON.parse(JSON.stringify(o))); return; }
-  if (src === 'lam') { const o = (S.lam.cronograma || []).find(x => x.id === id); if (o) formLam(JSON.parse(JSON.stringify(o))); }
-}
-function pieForm(fnGuardar, fnBorrar) {
-  return `<div>${fnBorrar ? `<button class="btn bad" onclick="${fnBorrar}">🗑 Borrar</button>` : ''}</div><div style="display:flex;gap:8px"><button class="btn" onclick="cerrar()">Cancelar</button><button class="btn pri" onclick="${fnGuardar}">💾 Guardar</button></div>`;
+  const cp = o => JSON.parse(JSON.stringify(o));
+  if (src === 'via') { const o = viajesVivos().find(x => x.id === id); if (o) formVia(cp(o)); return; }
+  if (src === 'pet') { const d = S.pet.planificacion[f]; const o = d && d.ops.find(x => x.id === id); if (o) formPet(cp(o), f); return; }
+  if (src === 'ter') { const o = (S.ter.cronograma || []).find(x => x.id === id); if (o) formTer(cp(o)); return; }
+  if (src === 'lam') { const o = (S.lam.cronograma || []).find(x => x.id === id); if (o) formLam(cp(o)); }
 }
 
-/* ── VIAJES ── */
+/* ── VIAJES (viajes.json del Gist de PET) ── */
 let ED = null;
 function formVia(o) {
-  ED = o; const tr = (S.via && S.via.transportes) || TRANSP_DEF;
+  ED = o; const cs = caps();
+  const legF = (l, x) => {
+    const ida = l === 'ida';
+    return `<div class="lb ${ida ? 'ida' : 'vue'}"><div class="lbt"><span>${ida ? '⬆ Ida · Chivilcoy → Lanús' : '⬇ Vuelta · Lanús → Chivilcoy'}</span><span class="tg gr" id="${l}_pc">—</span></div>
+      <div class="f"><label>Fecha</label><input type="date" id="${l}_f" value="${esc(x.fecha || '')}" ${ida ? `onchange="const w=$('vuelta_f');if(!w.value||w.value<this.value||w.dataset.ig!=='0')w.value=this.value"` : `oninput="this.dataset.ig='0'"`}></div>
+      <div class="f"><label>Hora (opcional)</label><input type="time" id="${l}_h" value="${esc(x.hora || '')}"></div>
+      <div class="f w"><label>${ida ? 'Qué lleva' : 'Qué trae'}</label><textarea id="${l}_c" rows="2" placeholder="${ida ? 'Ej: bobinas F40 y T900, PET Don Yeyo, pallets de Bligraf…' : 'Ej: PE para laminar, scrap, conos, insumos… (vacío si vuelve sin carga)'}">${esc(x.carga || '')}</textarea></div>
+      <div class="f u-pos"><label>Posiciones ocupadas</label><input type="number" min="0" id="${l}_p" value="${esc(x.pos || '')}" oninput="viaCalc()"></div>
+      <div class="f u-kg"><label>Kg cargados</label><input type="number" min="0" step="10" id="${l}_k" value="${esc(x.kg || '')}" oninput="viaCalc()"></div>
+      <div style="width:100%" id="${l}_bar"></div></div>`;
+  };
   modal(o.id ? '🚚 Editar viaje' : '🚚 Nuevo viaje Chivilcoy ↔ Lanús', `
-    <div class="f"><label>Fecha</label><input type="date" id="v_fecha" value="${esc(o.fecha)}"></div>
-    <div class="f"><label>Hora (opcional)</label><input type="time" id="v_hora" value="${esc(o.hora || '')}"></div>
-    <div class="f w"><label>Transporte</label><input id="v_tr" list="v_trl" value="${esc(o.transporte || '')}" placeholder="Quién hace el viaje"><datalist id="v_trl">${tr.map(t => `<option value="${esc(t)}">`).join('')}</datalist>
-      <div class="opsel" style="margin-top:4px">${tr.map(t => `<label onclick="$('v_tr').value=this.textContent.trim()">${esc(t)}</label>`).join('')}</div></div>
-    <div class="f w"><label>⬆ Lleva — Chivilcoy → Lanús</label><textarea id="v_lleva" rows="2" placeholder="Ej: bobinas F40 y T900, PET Don Yeyo, pallets de Bligraf…">${esc(o.lleva || '')}</textarea></div>
-    <div class="f"><label>Pallets que lleva (opcional)</label><input type="number" id="v_pal" min="0" value="${esc(o.pallets || '')}"></div>
+    <div class="f w"><label>Transporte</label><div class="tsel">${Object.keys(cs).map(t => `<button type="button" class="${o.transporte === t ? 'on' : ''}" data-t="${esc(t)}" onclick="viaTr(this)">${esc(t)}<small>${capTxt(t)}</small></button>`).join('')}</div></div>
+    ${legF('ida', o.ida || {})}
+    <div style="width:100%;display:flex;justify-content:flex-end;margin:-4px 0"><button class="btn sm" type="button" onclick="$('vuelta_f').value=$('ida_f').value">Vuelta el mismo día de la ida</button></div>
+    ${legF('vuelta', o.vuelta || {})}
     <div class="f"><label>Estado</label><select id="v_est">${Object.keys(ST_VIA).map(k => `<option value="${k}" ${o.estado === k ? 'selected' : ''}>${ST_VIA[k]}</option>`).join('')}</select></div>
-    <div class="f w"><label>⬇ Trae — Lanús → Chivilcoy</label><textarea id="v_trae" rows="2" placeholder="Ej: PE para laminar, scrap, conos, insumos…">${esc(o.trae || '')}</textarea></div>
-    <div class="f w"><label>Nota</label><input id="v_nota" value="${esc(o.nota || '')}" placeholder="Opcional"></div>`,
-    pieForm('guardarVia()', o.id ? 'borrarVia()' : ''));
+    <div class="f"><label>Nota</label><input id="v_nota" value="${esc(o.nota || '')}" placeholder="Opcional"></div>`,
+    pieForm('guardarVia()', o.id ? 'borrarVia()' : ''), true);
+  viaCalc();
+}
+function viaTr(btn) { document.querySelectorAll('.tsel button').forEach(b => b.classList.toggle('on', b === btn)); ED.transporte = btn.getAttribute('data-t'); viaCalc(); }
+function viaCalc() {
+  const c = caps()[ED.transporte];
+  document.querySelectorAll('.u-pos').forEach(e => e.style.display = !c || c.u === 'pos' ? '' : 'none');
+  document.querySelectorAll('.u-kg').forEach(e => e.style.display = c && c.u === 'kg' ? '' : 'none');
+  ['ida', 'vuelta'].forEach(l => {
+    const u = c ? +(c.u === 'kg' ? v(l + '_k') : v(l + '_p')) || 0 : 0, p = c && c.cap ? u / c.cap : null;
+    $(l + '_pc').className = 'tg ' + occCls(p); $(l + '_pc').textContent = c ? `${pct(p)} de ${capTxt(ED.transporte)}` : 'elegí el transporte';
+    $(l + '_bar').innerHTML = barra(p);
+  });
 }
 async function guardarVia() {
-  const o = Object.assign({}, ED, { fecha: v('v_fecha'), hora: v('v_hora'), transporte: vt('v_tr'), lleva: vt('v_lleva'), trae: vt('v_trae'), pallets: +v('v_pal') || '', estado: v('v_est'), nota: vt('v_nota'), mod: nowISO() });
-  if (!o.fecha) return toast('Falta la fecha', true);
-  if (!o.transporte) return toast('Poné qué transporte hace el viaje', true);
-  if (!o.lleva && !o.trae) return toast('Poné qué lleva o qué trae', true);
+  const leg = l => ({ fecha: v(l + '_f'), hora: v(l + '_h'), carga: vt(l + '_c'), pos: +v(l + '_p') || '', kg: +v(l + '_k') || '' });
+  const o = Object.assign({}, ED, { ida: leg('ida'), vuelta: leg('vuelta'), estado: v('v_est'), nota: vt('v_nota'), mod: nowISO() });
+  if (!o.transporte) return toast('Elegí el transporte (Aguirre, Monti o Eugenio)', true);
+  if (!o.ida.fecha) return toast('Falta la fecha de la ida', true);
+  if (!o.vuelta.fecha) o.vuelta.fecha = o.ida.fecha;
+  if (o.vuelta.fecha < o.ida.fecha) return toast('La vuelta no puede ser antes que la ida', true);
   if (!o.id) { o.id = uid('VJ'); o.creado = o.mod; }
-  await escribir('Viajes', () => viaWrite(d => {
-    const i = d.viajes.findIndex(x => x.id === o.id); if (i >= 0) d.viajes[i] = o; else d.viajes.push(o);
-    if (o.transporte && !d.transportes.some(t => t.toLowerCase() === o.transporte.toLowerCase())) d.transportes.push(o.transporte);
-  }));
+  ['fecha', 'hora', 'lleva', 'trae', 'pallets'].forEach(k => delete o[k]); // campos del formato viejo
+  await escribir('Viajes', () => viaWrite(d => { const i = d.viajes.findIndex(x => x.id === o.id); if (i >= 0) d.viajes[i] = o; else d.viajes.push(o); }));
 }
 async function borrarVia() {
-  if (!await confirmar('¿Borrar este viaje?', 'Borrar')) return;
+  if (!await confirmar('¿Borrar este viaje (ida y vuelta)?', 'Borrar')) return;
   const id = ED.id;
   await escribir('Viajes', () => viaWrite(d => { d.viajes = d.viajes.filter(x => x.id !== id); d.viajesEliminados[id] = nowISO(); }));
 }
@@ -540,7 +733,7 @@ async function viaWrite(mut) {
   const lim = new Date(Date.now() - 120 * 864e5).toISOString();
   Object.keys(d.viajesEliminados).forEach(k => { if (d.viajesEliminados[k] < lim) delete d.viajesEliminados[k]; });
   d.viajes = d.viajes.filter(x => !d.viajesEliminados[x.id]);
-  await gistPatch({ 'viajes.json': { content: JSON.stringify({ viajes: d.viajes, viajesEliminados: d.viajesEliminados, transportes: d.transportes, lastUpdate: nowISO() }) } });
+  await gistPatch({ 'viajes.json': { content: JSON.stringify({ version: 2, viajes: d.viajes, viajesEliminados: d.viajesEliminados, capacidades: d.capacidades, lastUpdate: nowISO() }) } });
   S.via = d;
 }
 
@@ -570,6 +763,7 @@ async function guardarPet() {
   const fecha = v('p_fecha'), tipo = v('p_tipo'), base = ED.o, fechaOrig = ED.fechaOrig;
   if (!fecha) return toast('Falta la fecha', true);
   const o = Object.assign({}, base, { kgPlan: +v('p_kg') || 0, status: v('p_st'), notas: vt('p_not'), mod: nowISO() });
+  delete o.fecha;
   if (tipo === 'ped') { o.pedidoId = v('p_ped'); if (!o.pedidoId) return toast('Elegí el pedido (o cambiá a proyectada)', true); delete o.proy; delete o.pCli; delete o.pDesc; }
   else { o.pedidoId = ''; o.proy = true; o.pCli = vt('p_cli'); o.pDesc = vt('p_desc'); if (!o.pCli) return toast('Poné el cliente o destino', true); }
   const mueve = o.id && fechaOrig && fechaOrig !== fecha;
@@ -614,7 +808,7 @@ function formTer(o) {
     <div class="f"><label>Turno</label><select id="t_turno">${Object.keys(TER_TURNOS).map(k => `<option value="${k}" ${o.turno === k ? 'selected' : ''}>${TER_TURNOS[k]}</option>`).join('')}</select><span class="h">M1 y M2 no se mezclan el mismo día (como en la app)</span></div>
     <div class="f"><label>Producto / evento</label><select id="t_prod"><option value="">— elegir —</option><optgroup label="Productos">${TER_PRODS.map(p => `<option ${o.prod === p ? 'selected' : ''}>${p}</option>`).join('')}</optgroup><optgroup label="Eventos">${Object.keys(TER_EVT).map(k => `<option value="${k}" ${o.prod === k ? 'selected' : ''}>${TER_EVT[k].ic} ${TER_EVT[k].lbl}</option>`).join('')}</optgroup></select></div>
     <div class="f"><label>Meta de pallets (opcional)</label><input type="number" id="t_meta" min="0" value="${esc(o.meta || '')}"></div>
-    <div class="f w"><label>Operarios</label><div class="opsel">${ops.map((n, i) => `<label><input type="checkbox" class="t_op" value="${esc(n)}" ${(o.operarios || []).includes(n) ? 'checked' : ''}>${esc(n)}</label>`).join('')}</div></div>
+    <div class="f w"><label>Operarios</label><div class="opsel">${ops.map(n => `<label><input type="checkbox" class="t_op" value="${esc(n)}" ${(o.operarios || []).includes(n) ? 'checked' : ''}>${esc(n)}</label>`).join('')}</div></div>
     <div class="f w"><label>Observaciones</label><input id="t_obs" value="${esc(o.obs || '')}"></div>
     <div class="info">No hace falta pedido: es lo que se va a producir. Se guarda en la app de Termoformado.</div>`,
     pieForm('guardarTer()', o.id ? 'borrarTer()' : ''));
@@ -715,7 +909,7 @@ async function escribir(nom, fn) {
 function renderConexion() {
   const c = gistCreds() || {};
   modal('Conectar PET Chivilcoy y Viajes', `
-    <div class="info w">En esta PC ya está conectado si alguna vez abriste la app de PET Chivilcoy en este mismo navegador. Si no, abrí el <b>link de conexión</b> que genera PET Chivilcoy (⚙ Configuración) y cambiá la dirección por <span class="mono">winflexsa.github.io/Cronograma-General/</span> (dejando lo que va después del #), o cargá los datos acá.</div>
+    <div class="info">En esta PC ya está conectado si alguna vez abriste la app de PET Chivilcoy en este mismo navegador. Si no, usá el <b>link de conexión</b> que genera PET Chivilcoy (⚙ Configuración) cambiando la dirección por <span class="mono">winflexsa.github.io/Cronograma-General/</span> (dejando lo que va después del #), o cargá los datos acá.</div>
     <div class="f w"><label>Gist ID</label><input id="g_id" value="${esc(c.gistId || '')}" class="mono"></div>
     <div class="f w"><label>Token de GitHub</label><input id="g_tk" type="password" value="${esc(c.token || '')}" class="mono"></div>`,
     `<div></div><div style="display:flex;gap:8px"><button class="btn" onclick="cerrar()">Cancelar</button><button class="btn pri" onclick="guardarConexion()">Conectar</button></div>`);
