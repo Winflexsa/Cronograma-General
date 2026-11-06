@@ -9,15 +9,15 @@
 <link rel="icon" type="image/png" href="icon-cronograma-192.png">
 <link rel="apple-touch-icon" href="icon-cronograma-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f3f4f6;--surf:#fff;--border:#e5e7eb;--border2:#d1d5db;
-  --text:#1f2937;--text2:#6b7280;--text3:#9ca3af;
-  --g:#16a34a;--gd:#0f8a5f;--gdd:#0a5e38;--gl:#e8f7ef;--gl2:#ccebd9;
+  --bg:#f2f5f2;--surf:#fff;--border:#e2e8e2;--border2:#d3dcd3;
+  --text:#19211b;--text2:#5c665e;--text3:#94a096;
+  --g:#15a463;--gd:#0e7a49;--gdd:#0a5e38;--gl:#e8f7ef;--gl2:#ccebd9;
   --ok:#0e7a49;--okl:#e4f6ec;--mid:#a16207;--midl:#fdf3dc;--bad:#b42318;--badl:#fdecea;
   --via:#6d4fc2;--via-l:#f3effc;--via-b:#dcd2f5;
-  --ent:#3f8a1f;--ent-l:#f1f8ea;--ent-b:#d2e8c1;
+  --ent:#0e7a49;--ent-l:#e4f6ec;--ent-b:#d2eedd;
   --pet:#2563eb;--pet-l:#eef4ff;--pet-b:#cfe0fb;
   --ter:#0f8a5f;--ter-l:#ebf8f1;--ter-b:#c8eadb;
   --lam:#c2650f;--lam-l:#fdf3e7;--lam-b:#f3dbbd;
@@ -27,9 +27,11 @@
   --mono:'DM Mono',ui-monospace,Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px;margin:0}
+body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px;margin:0}
 button,input,select,textarea{font-family:inherit;font-size:14px}
 .mono{font-family:var(--mono)}
+svg.i{width:1.05em;height:1.05em;vertical-align:-.17em;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;margin-right:.32em;opacity:.85}
+.tab svg.i,.btn svg.i{opacity:1}
 .hidden{display:none!important}
 
 /* ── encabezado y pestañas (como PET Chivilcoy) ── */
@@ -62,7 +64,7 @@ main{padding:18px 24px 40px;max-width:1800px;margin:0 auto}
 .seg button.on{background:#fff;color:var(--gd);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 
 /* ── banner ── */
-.hero{background:linear-gradient(120deg,#0f8a5f 0%,#16a34a 60%,#22b35e 100%);color:#fff;border-radius:16px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 6px 18px rgba(15,138,95,.25)}
+.hero{background:var(--gdd);color:#fff;border-radius:14px;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:none;border:1px solid #08502f}
 .hero .s{font-size:13px;opacity:.9}
 .hero .t{font-size:21px;font-weight:700;margin-top:2px}
 .hero .r{display:flex;gap:22px;flex-wrap:wrap}
@@ -110,7 +112,7 @@ main{padding:18px 24px 40px;max-width:1800px;margin:0 auto}
 .it.via{background:var(--via-l);border-color:var(--via-b)}.it.via .k{color:var(--via)}
 .it.ent{background:var(--ent-l);border-color:var(--ent-b)}.it.ent .k{color:var(--ent)}
 .it .cl{font-size:11px;color:var(--text);margin-top:2px;display:flex;justify-content:space-between;gap:6px}.it .cl span:last-child{color:var(--text2);font-family:var(--mono);white-space:nowrap}
-.hero.ent{background:linear-gradient(120deg,#0f8a5f 0%,#2f9a3a 60%,#4caf3c 100%);box-shadow:0 6px 18px rgba(47,154,58,.25)}
+.hero.ent{background:var(--gdd)}
 .btn.ent{background:var(--ent);border-color:var(--ent);color:#fff}.btn.ent:hover{filter:brightness(.95)}
 .egrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:12px}
 .ed{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh);overflow:hidden;scroll-margin-top:58px}
@@ -349,7 +351,7 @@ table.t tr.cl{cursor:pointer}table.t tr.cl:hover td{background:#fafafa}
 
 <script>
 'use strict';
-const VERSION = 'v2.7';
+const VERSION = 'v2.8';
 document.getElementById('ver').textContent = '· ' + VERSION;
 
 /* ═════════ CONEXIONES (las mismas que usan las apps) ═════════ */
@@ -372,6 +374,49 @@ function gistCreds() { try { return JSON.parse(lsGet('winflex_gist_credentials')
     if (j && j.g && j.t) lsSet('winflex_gist_credentials', JSON.stringify({ gistId: j.g, token: j.t }));
   } catch (e) { console.warn('link de conexión inválido', e); }
 })();
+
+
+/* ═════════ ÍCONOS (línea, estilo industrial) — reemplazan los emojis al dibujar ═════════ */
+const ICP = {
+  cal: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  truck: '<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',
+  box: '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+  chart: '<path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/>',
+  cash: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>',
+  file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4M16 13H8M16 17H8"/>',
+  clip: '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>',
+  print: '<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
+  phone: '<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  up: '<path d="M12 19V5M5 12l7-7 7 7"/>',
+  down: '<path d="M12 5v14M19 12l-7 7-7-7"/>',
+  pen: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  pin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  rcpt: '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8H8M16 12H8M13 16H8"/>',
+  save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/>',
+  trash: '<path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  fact: '<path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>',
+  layers: '<path d="m12 2 10 5-10 5L2 7Z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/>',
+  grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/>',
+  wrench: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/>',
+  repeat: '<path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>',
+  alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/>',
+  refresh: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+  okc: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+  tel: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/>'
+};
+const EMO = { '📅': 'cal', '🚚': 'truck', '🚐': 'truck', '📦': 'box', '📊': 'chart', '💵': 'cash', '📄': 'file', '📋': 'clip', '🖨': 'print', '📲': 'phone', '👷': 'user', '⬆': 'up', '⬇': 'down', '📝': 'pen', '✏': 'pen', '📍': 'pin', '🕑': 'clock', '⏳': 'clock', '🧾': 'rcpt', '💾': 'save', '🗑': 'trash', '🏭': 'fact', '🎞': 'layers', '♨': 'grid', '⚙': 'gear', '🔧': 'wrench', '🔁': 'repeat', '⚠': 'alert', '🔄': 'refresh', '✅': 'okc', '☎': 'tel' };
+const EMO_RE = new RegExp('(' + Object.keys(EMO).join('|') + ')\\uFE0F?', 'g');
+function icono(n) { return `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICP[n]}</svg>`; }
+function sinEmojis(root) { // cambia cada emoji del texto dibujado por su ícono de línea
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, { acceptNode: n => n.parentNode && /^(SCRIPT|STYLE|OPTION|TEXTAREA|TITLE)$/.test(n.parentNode.nodeName) ? NodeFilter.FILTER_REJECT : (EMO_RE.lastIndex = 0, EMO_RE.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP) });
+  const ns = []; while (w.nextNode()) ns.push(w.currentNode);
+  ns.forEach(n => { const t = document.createElement('template'); t.innerHTML = esc(n.nodeValue).replace(EMO_RE, (m, e) => icono(EMO[e])).replace(/(<\/svg>)\s+/g, '$1'); n.replaceWith(t.content); });
+}
+new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) sinEmojis(n); else if (n.nodeType === 3 && n.parentNode) sinEmojis(n.parentNode); }))).observe(document.documentElement, { childList: true, subtree: true });
+document.addEventListener('DOMContentLoaded', () => sinEmojis(document.body));
 
 /* ═════════ UTILIDADES ═════════ */
 const $ = id => document.getElementById(id);
@@ -1456,7 +1501,7 @@ function formPet(o, fechaOrig) {
     <div class="f p-proy"><label>Cliente / destino</label><input id="p_cli" list="p_clis" value="${esc(o.pCli || '')}"><datalist id="p_clis">${clis.map(c => `<option value="${esc(c)}">`).join('')}</datalist></div>
     <div class="f p-proy"><label>Producto / medida</label><input id="p_desc" value="${esc(o.pDesc || '')}" placeholder="Ej: rPET cristal 580×300"></div>
     <div class="f"><label>Kg planificados</label><input type="number" id="p_kg" min="0" step="50" value="${esc(o.kgPlan || 0)}"></div>
-    <div class="f"><label>Estado</label><select id="p_st">${Object.keys(ST_PET).map(k => `<option value="${k}" ${(o.status || 'pendiente') === k ? 'selected' : ''}>${ST_PET[k]}</option>`).join('')}</select></div>
+    <div class="f"><label>Estado</label><select id="p_st">${Object.keys(ST_PET).map(k => `<option value="${k}" ${(o.status || 'pendiente') === k ? 'selected' : ''}>${ST_PET[k].replace(/^\S+\s/, '')}</option>`).join('')}</select></div>
     <div class="f w"><label>Notas</label><textarea id="p_not" rows="2">${esc(o.notas || '')}</textarea></div>`,
     pieForm('guardarPet()', o.id ? 'borrarPet()' : ''));
   petTipo();
@@ -1510,7 +1555,7 @@ function formTer(o) {
   modal(o.id ? '♨️ Termoformado · editar' : '♨️ Termoformado · agregar', `
     <div class="f"><label>Fecha</label><input type="date" id="t_fecha" value="${esc(o.fecha)}"></div>
     <div class="f"><label>Turno</label><select id="t_turno">${Object.keys(TER_TURNOS).map(k => `<option value="${k}" ${o.turno === k ? 'selected' : ''}>${TER_TURNOS[k]}</option>`).join('')}</select><span class="h">M1 y M2 no se mezclan el mismo día (como en la app)</span></div>
-    <div class="f"><label>Producto / evento</label><select id="t_prod"><option value="">— elegir —</option><optgroup label="Productos">${TER_PRODS.map(p => `<option ${o.prod === p ? 'selected' : ''}>${p}</option>`).join('')}</optgroup><optgroup label="Eventos">${Object.keys(TER_EVT).map(k => `<option value="${k}" ${o.prod === k ? 'selected' : ''}>${TER_EVT[k].ic} ${TER_EVT[k].lbl}</option>`).join('')}</optgroup></select></div>
+    <div class="f"><label>Producto / evento</label><select id="t_prod"><option value="">— elegir —</option><optgroup label="Productos">${TER_PRODS.map(p => `<option ${o.prod === p ? 'selected' : ''}>${p}</option>`).join('')}</optgroup><optgroup label="Eventos">${Object.keys(TER_EVT).map(k => `<option value="${k}" ${o.prod === k ? 'selected' : ''}>${TER_EVT[k].lbl}</option>`).join('')}</optgroup></select></div>
     <div class="f"><label>Meta de pallets (opcional)</label><input type="number" id="t_meta" min="0" value="${esc(o.meta || '')}"></div>
     <div class="f w"><label>Operarios</label><div class="opsel">${ops.map(n => `<label><input type="checkbox" class="t_op" value="${esc(n)}" ${(o.operarios || []).includes(n) ? 'checked' : ''}>${esc(n)}</label>`).join('')}</div></div>
     <div class="f w"><label>Observaciones</label><input id="t_obs" value="${esc(o.obs || '')}"></div>
