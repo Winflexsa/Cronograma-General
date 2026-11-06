@@ -126,6 +126,8 @@ main{padding:18px 24px 40px;max-width:1800px;margin:0 auto}
 .er b{font-size:13px}.er .q{font-family:var(--mono);font-size:12px;text-align:right;white-space:nowrap}
 .er .d{grid-column:1 / -1;font-size:11.5px;color:var(--text2)}
 .er.ok{background:#f3faf6;border-color:#cdebd9}.er.canc{opacity:.45;text-decoration:line-through}
+.ordn{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--ent);color:#fff;font-size:11px;font-weight:800;margin-right:2px;vertical-align:1px}
+.mv{display:inline-flex;gap:2px;margin-left:8px;vertical-align:1px}.mv button{border:1px solid var(--border2);background:#fff;border-radius:6px;font-size:9px;line-height:1;padding:3px 5px;cursor:pointer;color:var(--text2)}.mv button:disabled{opacity:.3;cursor:default}
 .ee{padding:14px;color:var(--text3);font-size:12.5px;font-style:italic;display:flex;justify-content:space-between;align-items:center}
 .it.proy{background:#fff;border:1.5px dashed currentColor}
 .it.pet.proy{color:var(--pet)}.it.lam.proy{color:var(--lam)}.it.ref.proy{color:var(--ref)}
@@ -257,7 +259,7 @@ table.t tr.cl{cursor:pointer}table.t tr.cl:hover td{background:#fafafa}
 
 <script>
 'use strict';
-const VERSION = 'v2.4';
+const VERSION = 'v2.5';
 document.getElementById('ver').textContent = '· ' + VERSION;
 
 /* ═════════ CONEXIONES (las mismas que usan las apps) ═════════ */
@@ -387,17 +389,25 @@ function parseCrono(txt) { try { const o = JSON.parse(txt || '{}'); return { pla
 const TR_ALIAS = { 'camión de monti': 'Monti', 'camion de monti': 'Monti', 'monti': 'Monti', 'aguirre': 'Aguirre', 'eugenio': 'Eugenio' };
 function normTr(t) { return TR_ALIAS[String(t || '').trim().toLowerCase()] || String(t || '').trim(); }
 function migrarViaje(v) {
-  if (v.ida || v.vuelta) return v;
+  if (v.fmt === 3) return v;
+  if (v.ida || v.vuelta) { // formato 2 (ida = Chivilcoy→Lanús, con fecha por tramo) → se invierte
+    const a = v.ida || {}, b = v.vuelta || {};
+    return { id: v.id, fmt: 3, transporte: normTr(v.transporte), estado: v.estado || 'programado', nota: v.nota || '', creado: v.creado, mod: v.mod,
+      fecha: a.fecha || b.fecha || '', hora: a.hora || b.hora || '',
+      ida: { carga: b.carga || '', pos: b.pos || '', kg: b.kg || '', items: b.items || [], remito: b.remito || null },
+      vuelta: { carga: a.carga || '', pos: a.pos || '', kg: a.kg || '' } };
+  }
   // formato v1: fecha / hora / lleva / trae / pallets
-  const o = { id: v.id, transporte: normTr(v.transporte), estado: v.estado === 'confirmado' ? 'programado' : (v.estado || 'programado'), nota: v.nota || '', creado: v.creado, mod: v.mod,
-    ida: { fecha: v.fecha, hora: v.hora || '', carga: v.lleva || '', pos: +v.pallets || '', kg: '' },
-    vuelta: { fecha: v.fecha, hora: '', carga: v.trae || '', pos: '', kg: '' } };
+  const o = { id: v.id, fmt: 3, transporte: normTr(v.transporte), estado: v.estado === 'confirmado' ? 'programado' : (v.estado || 'programado'), nota: v.nota || '', creado: v.creado, mod: v.mod,
+    fecha: v.fecha || '', hora: v.hora || '',
+    ida: { carga: v.trae || '', pos: '', kg: '', items: [] },
+    vuelta: { carga: v.lleva || '', pos: +v.pallets || '', kg: '' } };
   return o;
 }
 function parseViajes(txt) {
   let o = {}; try { o = JSON.parse(txt || '{}'); } catch (_) {}
   const capacidades = Object.assign({}, CAP_DEF, o.capacidades || {});
-  return { viajes: (o.viajes || []).map(migrarViaje), viajesEliminados: o.viajesEliminados || {}, capacidades };
+  return { viajes: (o.viajes || []).map(migrarViaje), viajesEliminados: o.viajesEliminados || {}, capacidades, remProx: +o.remProx || 1, remPV: o.remPV || '0002' };
 }
 
 const COB_BIN = '6a0b2b196877513b27912597', EP_BIN = '6a7a079bda38895dfed1e0ed';
@@ -458,8 +468,7 @@ function viajesVivos() { return S.via ? S.via.viajes.filter(v => !S.via.viajesEl
 function items(fecha, area) {
   const out = [];
   if (area === 'via') {
-    viajesVivos().forEach(v => ['ida', 'vuelta'].forEach(l => { if (v[l] && v[l].fecha === fecha) out.push({ src: 'via', o: v, leg: l }); }));
-    out.sort((a, b) => (a.o[a.leg].hora || '').localeCompare(b.o[b.leg].hora || ''));
+    viajesVivos().filter(v => v.fecha === fecha).sort((a, b) => (a.hora || '').localeCompare(b.hora || '')).forEach(v => out.push({ src: 'via', o: v }));
   }
   if (area === 'ent') entViajesDia(fecha).forEach(g => out.push({ src: 'ent', o: { id: fecha + '|' + g.n }, fecha, g }));
   if (area === 'pet' && S.pet) {
@@ -482,17 +491,16 @@ function card(it, area) {
   const o = it.o, cls = AREA[area].cls;
   const k = `data-src="${it.src}" data-id="${esc(o.id)}" data-f="${esc(it.fecha || o.fecha || '')}"`;
   if (it.src === 'via') {
-    const x = o[it.leg] || {}, ida = it.leg === 'ida', p = legOcc(o, it.leg);
-    const vacio = !legUso(o, it.leg) && !x.carga;
+    const tramo = (l, lbl, cls) => { const x = o[l] || {}, p = legOcc(o, l), u = legUso(o, l);
+      return `<div style="margin-top:5px"><div class="h"><span class="tg ${cls}">${lbl}</span><span class="k" style="margin:0">${u ? uTxt(o.transporte, u) + ' · ' : ''}${pct(p)}</span></div><div class="m">${x.carga ? esc(x.carga) : '<i>Vacío</i>'}${l === 'ida' && x.remito ? ' · <b>Rto ' + esc(remNro(x.remito)) + '</b>' : ''}</div>${barra(p)}</div>`; };
     return `<div class="it via ${o.estado === 'cancelado' ? 'canc' : ''}" ${k}>
-      <div class="h"><b>🚚 ${esc(o.transporte || '—')}${x.hora ? ' · ' + esc(x.hora) : ''}</b><span class="tg ${ida ? 'ida' : 'vue'}">${ida ? 'IDA → Lanús' : 'VUELTA → Chivi'}</span></div>
-      <div class="m">${vacio ? '<i>Vacío</i>' : esc(x.carga || '')}</div>
-      <div class="k">${legUso(o, it.leg) ? uTxt(o.transporte, legUso(o, it.leg)) + ' · ' : ''}${pct(p)}${o.estado === 'realizado' ? ' · ✓' : ''}</div>${barra(p)}</div>`;
+      <div class="h"><b>🚚 ${esc(o.transporte || '—')}${o.hora ? ' · ' + esc(o.hora) : ''}</b>${o.estado === 'realizado' ? '<span class="tg ok">✓</span>' : ''}</div>
+      ${tramo('ida', 'Lanús → Chivi', 'ida')}${tramo('vuelta', 'Chivi → Lanús', 'vue')}</div>`;
   }
   if (it.src === 'ent') {
     const g = it.g, p = entOcc(g);
     return `<div class="it ent" ${k}><div class="h"><b>🚐 Viaje ${g.n}</b><span class="tg gr">Eugenio · ${g.list.length} cl.</span></div>
-      ${g.list.map(e => `<div class="cl"><span>${esc(e.cliente)}${e.horario ? ' · ' + esc(e.horario) : ''}${e.estado === 'entregada' ? ' ✓' : ''}</span><span>${e.kg ? fmt(e.kg) + ' kg' : (e.pos ? e.pos + ' pos' : '')}</span></div>`).join('')}
+      ${g.list.map(e => `<div class="cl"><span>${ordenDia(it.fecha, e.id)}. ${esc(e.cliente)}${cobra(e) ? ' 💵' : ''}${e.horario ? ' · ' + esc(e.horario) : ''}${e.estado === 'entregada' ? ' ✓' : ''}</span><span>${e.kg ? fmt(e.kg) + ' kg' : (e.pos ? e.pos + ' pos' : '')}</span></div>`).join('')}
       <div class="k">${g.pos ? g.pos + ' pos. · ' : ''}${fmt(g.kg)} kg · ${pct(p)}</div>${barra(p)}</div>`;
   }
   if (it.src === 'pet') {
@@ -577,16 +585,16 @@ document.addEventListener('click', e => {
 });
 
 /* ═════════ PESTAÑA VIAJES ═════════ */
-function fechaViaje(v) { return (v.ida && v.ida.fecha) || (v.vuelta && v.vuelta.fecha) || ''; }
+function fechaViaje(v) { return v.fecha || ''; }
 function vcard(v) {
   const leg = l => { const x = v[l] || {}, p = legOcc(v, l), u = legUso(v, l), ida = l === 'ida';
-    return `<div class="leg"><div class="lt" style="color:${ida ? 'var(--via)' : '#2f5fc4'}"><span>${ida ? '⬆ Ida · Chivilcoy → Lanús' : '⬇ Vuelta · Lanús → Chivilcoy'}</span></div>
-      <div class="lf">${x.fecha ? dLargo(x.fecha) : '—'}${x.hora ? ' · ' + esc(x.hora) : ''}</div>
+    return `<div class="leg"><div class="lt" style="color:${ida ? 'var(--via)' : '#2f5fc4'}"><span>${ida ? '⬆ Lanús → Chivilcoy' : '⬇ Chivilcoy → Lanús'}</span></div>
+      <div class="lf">${ida ? (x.remito ? `<button class="btn sm" onclick="event.stopPropagation();remitoPDF('${esc(v.id)}')" title="Reimprimir">📄 Remito ${esc(remNro(x.remito))}</button>` : `<button class="btn sm" onclick="event.stopPropagation();formRemito('${esc(v.id)}')">📄 Emitir remito</button>`) : '<span class="note">Remito: lo emite PET Chivilcoy</span>'}</div>
       <div class="lc">${x.carga ? esc(x.carga) : (u ? '' : '<i style="color:var(--text3)">Vacío</i>')}</div>
       <div class="lv"><span>${u ? uTxt(v.transporte, u) : '—'}</span><span class="tg ${occCls(p)}">${pct(p)}</span></div>${barra(p)}</div>`; };
   const tot = (legOcc(v, 'ida') + legOcc(v, 'vuelta')) / 2;
   return `<div class="vc" data-src="via" data-id="${esc(v.id)}">
-    <div class="vh"><div><b>🚚 ${esc(v.transporte || '—')}</b><small>Capacidad ${capTxt(v.transporte)}</small></div>
+    <div class="vh"><div><b>🚚 ${esc(v.transporte || '—')} · ${v.fecha ? dLargo(v.fecha) : '—'}${v.hora ? ' · ' + esc(v.hora) : ''}</b><small>Lanús → Chivilcoy → Lanús · capacidad ${capTxt(v.transporte)}</small></div>
       <span class="tg ${v.estado === 'realizado' ? 'ok' : v.estado === 'cancelado' ? 'bad' : 'gr'}">${ST_VIA[v.estado] || 'Programado'}</span></div>
     <div class="legs">${leg('ida')}${leg('vuelta')}</div>
     <div class="vf"><span>${v.nota ? '📝 ' + esc(v.nota) : ''}</span><span>Ocupación del viaje <b class="mono" style="color:${occCol(tot)}">${pct(isNaN(tot) ? null : tot)}</b></span></div></div>`;
@@ -596,7 +604,7 @@ function tabViajes() {
   const prox = vs.filter(v => v.estado === 'programado' && fechaViaje(v) >= hoy);
   const atras = vs.filter(v => v.estado === 'programado' && fechaViaje(v) < hoy);
   const hechos = vs.filter(v => v.estado !== 'programado' && fechaViaje(v) >= addD(hoy, -45)).reverse();
-  let h = `<div class="hero via"><div><div class="s">Chivilcoy ↔ Lanús</div><div class="t">Viajes</div></div>
+  let h = `<div class="hero via"><div><div class="s">Lanús → Chivilcoy → Lanús · en el día</div><div class="t">Viajes</div></div>
     <div class="r"><div><small>Próximos</small><b>${prox.length}</b></div><div><small>Sin cerrar</small><b>${atras.length}</b></div><div><small>Realizados 45 días</small><b>${hechos.filter(v => v.estado === 'realizado').length}</b></div></div></div>
     <div class="bar"><span class="note">Capacidad: ${Object.keys(caps()).map(t => `<b>${esc(t)}</b> ${capTxt(t)}`).join(' · ')}</span><span style="flex:1"></span><button class="btn via" onclick="nuevo('via','${hoy}')">🚚 Nuevo viaje</button></div>`;
   if (S.err.via) return h + `<div class="info">Sin conexión con viajes: ${esc(S.err.via)}</div>`;
@@ -625,7 +633,8 @@ function tabAnalisis() {
   const prom = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : null;
   const oIda = vs.map(v => legOcc(v, 'ida')), oVue = vs.map(v => legOcc(v, 'vuelta'));
   const oTot = vs.map((v, i) => (oIda[i] + oVue[i]) / 2);
-  const vacias = vs.filter(v => !legUso(v, 'vuelta') && !(v.vuelta && v.vuelta.carga)).length;
+  const vacio = (v, l) => !legUso(v, l) && !(v[l] && v[l].carga);
+  const vacias = vs.reduce((s, v) => s + (vacio(v, 'ida') ? 1 : 0) + (vacio(v, 'vuelta') ? 1 : 0), 0);
   const kpi = (val, l, s, col) => `<div class="kpi"><div class="v" style="color:${col || 'var(--text)'}">${val}</div><div class="l">${l}</div>${s ? `<div class="s">${s}</div>` : ''}</div>`;
   let h = `<div class="hero via"><div><div class="s">${PERS[S.per]} · ${dm(d1)} al ${dm(d2)}</div><div class="t">Análisis de viajes · qué tan llenos van los camiones</div></div>
     <div class="r"><div><small>Ocupación promedio</small><b>${pct(prom(oTot))}</b></div></div></div>
@@ -634,9 +643,9 @@ function tabAnalisis() {
   h += `<div class="kpis">
     ${kpi(vs.length, 'Viajes', sinCerrar ? `${sinCerrar} sin marcar realizado` : 'todos cerrados')}
     ${kpi(pct(prom(oTot)), 'Ocupación total', 'ida + vuelta', occCol(prom(oTot)))}
-    ${kpi(pct(prom(oIda)), 'Ocupación ida', 'Chivilcoy → Lanús', occCol(prom(oIda)))}
-    ${kpi(pct(prom(oVue)), 'Ocupación vuelta', 'Lanús → Chivilcoy', occCol(prom(oVue)))}
-    ${kpi(vacias, 'Vueltas vacías', vs.length ? Math.round(vacias / vs.length * 100) + '% de los viajes' : '', vacias ? 'var(--bad)' : 'var(--ok)')}
+    ${kpi(pct(prom(oIda)), 'Ocupación ida', 'Lanús → Chivilcoy', occCol(prom(oIda)))}
+    ${kpi(pct(prom(oVue)), 'Ocupación vuelta', 'Chivilcoy → Lanús', occCol(prom(oVue)))}
+    ${kpi(vacias, 'Tramos vacíos', vs.length ? Math.round(vacias / (vs.length * 2) * 100) + '% de los tramos' : '', vacias ? 'var(--bad)' : 'var(--ok)')}
   </div>`;
   // por transporte
   h += `<div class="sec"><h3>Por transporte</h3><span class="note">Verde ≥ 85% · amarillo 60–85% · rojo &lt; 60%</span></div><div class="tcards">`;
@@ -647,8 +656,8 @@ function tabAnalisis() {
     h += `<div class="tc"><div class="th"><b>🚚 ${esc(t)}</b><small>${capTxt(t)} por tramo</small></div>
       <div class="big" style="color:${occCol(pt)}">${pct(pt)}</div><div class="note">${xs.length} viaje${xs.length === 1 ? '' : 's'} en el período</div>
       ${barra(pt)}
-      <div class="row"><span>Ida</span><b class="mono">${pct(pi)}</b></div>${barra(pi)}
-      <div class="row"><span>Vuelta</span><b class="mono">${pct(pv)}</b></div>${barra(pv)}
+      <div class="row"><span>Lanús → Chivilcoy</span><b class="mono">${pct(pi)}</b></div>${barra(pi)}
+      <div class="row"><span>Chivilcoy → Lanús</span><b class="mono">${pct(pv)}</b></div>${barra(pv)}
       <div class="row"><span>Movido / disponible</span><b class="mono">${uTxt(t, usado)} de ${uTxt(t, disp)}</b></div>
       <div class="row"><span>Lugar sin usar</span><b class="mono" style="color:${disp - usado > 0 ? 'var(--bad)' : 'var(--ok)'}">${uTxt(t, Math.max(0, disp - usado))}</b></div></div>`;
   });
@@ -656,12 +665,12 @@ function tabAnalisis() {
   // detalle
   h += `<div class="sec"><h3>Detalle de viajes</h3></div>`;
   if (!vs.length) return h + `<div class="info">No hay viajes en el período. Cargalos desde la pestaña Viajes con las posiciones (o kg) que llevó cada tramo.</div>`;
-  h += `<div class="box"><table class="t"><thead><tr><th>Fecha</th><th>Transporte</th><th>Ida · lleva</th><th>Ocup. ida</th><th>Vuelta · trae</th><th>Ocup. vuelta</th><th>Total</th></tr></thead><tbody>`;
+  h += `<div class="box"><table class="t"><thead><tr><th>Fecha</th><th>Transporte</th><th>Lanús → Chivilcoy</th><th>Ocup.</th><th>Chivilcoy → Lanús</th><th>Ocup.</th><th>Total</th></tr></thead><tbody>`;
   vs.slice().sort((a, b) => fechaViaje(b).localeCompare(fechaViaje(a))).forEach(v => {
     const pi = legOcc(v, 'ida'), pv = legOcc(v, 'vuelta'), pt = (pi + pv) / 2;
     const pb = p => `<div class="pb">${barra(p)}<span>${pct(p)}</span></div>`;
     h += `<tr class="cl" data-src="via" data-id="${esc(v.id)}"><td>${dLargo(fechaViaje(v))}${v.estado !== 'realizado' ? ' <span class="tg mid">sin cerrar</span>' : ''}</td><td><b>${esc(v.transporte)}</b></td>
-      <td>${esc((v.ida && v.ida.carga) || '—')}<div class="note">${uTxt(v.transporte, legUso(v, 'ida'))}</div></td><td>${pb(pi)}</td>
+      <td>${esc((v.ida && v.ida.carga) || (legUso(v, 'ida') ? '' : 'Vacío'))}<div class="note">${uTxt(v.transporte, legUso(v, 'ida'))}</div></td><td>${pb(pi)}</td>
       <td>${esc((v.vuelta && v.vuelta.carga) || (legUso(v, 'vuelta') ? '' : 'Vacío'))}<div class="note">${uTxt(v.transporte, legUso(v, 'vuelta'))}</div></td><td>${pb(pv)}</td>
       <td><span class="tg ${occCls(pt)}" style="font-size:12px">${pct(pt)}</span></td></tr>`;
   });
@@ -682,16 +691,27 @@ async function guardarCaps() {
 
 
 /* ═════════ ENTREGAS A CLIENTES (Eugenio) · entregas.json del Gist de PET ═════════ */
-const ST_ENT = { programada: 'Programada', entregada: 'Entregada', cancelada: 'Cancelada' };
+const ST_ENT = { programada: 'Programada', entregada: 'Hecha', cancelada: 'Cancelada' };
+const ACC = { entregar: { lbl: 'Entregar', ic: '📦', pdf: 'ENTREGAR' }, entcob: { lbl: 'Entregar y cobrar', ic: '📦💵', pdf: 'ENTREGAR Y COBRAR' }, cobrar: { lbl: 'Solo cobrar', ic: '💵', pdf: 'SOLO COBRAR' } };
+const accDe = e => ACC[e.accion] ? e.accion : 'entregar';
+const cobra = e => accDe(e) !== 'entregar';
 function parseEnt(txt) { let o = {}; try { o = JSON.parse(txt || '{}'); } catch (_) {} return { entregas: o.entregas || [], entregasEliminadas: o.entregasEliminadas || {} }; }
 function entVivas() { return S.ent ? S.ent.entregas.filter(e => !S.ent.entregasEliminadas[e.id]) : []; }
 function entViajesDia(f) {
   const xs = entVivas().filter(e => e.fecha === f), g = {};
   xs.forEach(e => { const n = +e.viaje || 1; (g[n] = g[n] || []).push(e); });
   return Object.keys(g).sort((a, b) => a - b).map(n => {
-    const list = g[n].sort((a, b) => (+a.orden || 0) - (+b.orden || 0) || (a.horario || '').localeCompare(b.horario || '')), vivas = list.filter(e => e.estado !== 'cancelada');
+    const list = g[n].sort((a, b) => (+a.orden || 999) - (+b.orden || 999) || (a.creado || '').localeCompare(b.creado || '')), vivas = list.filter(e => e.estado !== 'cancelada');
     return { n: +n, list, kg: vivas.reduce((s, e) => s + (+e.kg || 0), 0), pos: vivas.reduce((s, e) => s + (+e.pos || 0), 0) };
   });
+}
+function ordenDia(f, id) { let n = 0, r = ''; entViajesDia(f).forEach(g => g.list.forEach(e => { if (e.estado !== 'cancelada') n++; if (e.id === id) r = e.estado === 'cancelada' ? '–' : n; })); return r; }
+async function entMover(id, dir) {
+  const e = entVivas().find(x => x.id === id); if (!e) return;
+  const g = entViajesDia(e.fecha).find(x => x.n === (+e.viaje || 1)); if (!g) return;
+  const ids = g.list.map(x => x.id), i = ids.indexOf(id), j = i + dir; if (j < 0 || j >= ids.length) return;
+  [ids[i], ids[j]] = [ids[j], ids[i]];
+  await escribir('Ruta', () => entWrite(d => { ids.forEach((x, k) => { const y = d.entregas.find(z => z.id === x); if (y) { y.orden = k + 1; y.mod = nowISO(); } }); }));
 }
 function entOcc(g) { const c = caps().Eugenio || { u: 'kg', cap: 2000 }; if (!c.cap) return null; return (c.u === 'kg' ? g.kg : g.pos) / c.cap; }
 function entViajeLibre(f) { const vs = entViajesDia(f); return vs.length ? vs[vs.length - 1].n : 1; }
@@ -726,13 +746,15 @@ function tabEntregas() {
   ds.forEach(d => {
     const vs = entViajesDia(d);
     h += `<div class="ed ${d === hoy ? 'hoy' : ''}" id="ed-${d}"><div class="eh"><span><b>${dLargo(d)}</b>${d === hoy ? ' <span class="tg" style="background:var(--ent);color:#fff">HOY</span>' : ''}</span>
-      <span style="display:flex;gap:6px;flex-wrap:wrap">${vs.length ? `<button class="btn sm" onclick="hojaRuta('${d}')">📄 Hoja de ruta</button><button class="btn sm" onclick="entWhats('${d}')">📋 WhatsApp</button>` : ''}<button class="btn sm ent" onclick="formEnt({fecha:'${d}',viaje:entViajeLibre('${d}'),cliente:'',pos:'',kg:'',lugar:'',horario:'',obs:'',estado:'programada'})">+ Entrega</button></span></div>`;
+      <span style="display:flex;gap:6px;flex-wrap:wrap">${vs.length ? `<button class="btn sm" onclick="hojaRuta('${d}')">📄 Ruta del día</button><button class="btn sm" onclick="entWhats('${d}')">📋 WhatsApp</button>` : ''}<button class="btn sm ent" onclick="formEnt({fecha:'${d}',viaje:entViajeLibre('${d}'),cliente:'',pos:'',kg:'',lugar:'',horario:'',obs:'',estado:'programada'})">+ Entrega</button></span></div>`;
     if (!vs.length) h += `<div class="ee"><span>Sin entregas</span></div>`;
     vs.forEach(g => {
       const p = entOcc(g);
       h += `<div class="ev"><div class="evh"><span>🚐 Viaje ${g.n}</span><span class="mono">${g.pos ? g.pos + ' pos. · ' : ''}${fmt(g.kg)} kg · <span class="tg ${occCls(p)}">${pct(p)}</span></span></div>${barra(p)}
-        ${g.list.map(e => `<div class="er ${e.estado === 'entregada' ? 'ok' : e.estado === 'cancelada' ? 'canc' : ''}" data-src="entx" data-id="${esc(e.id)}">
-          <b>${esc(e.cliente)}${e.estado === 'entregada' ? ' <span class="tg ok">Entregada</span>' : ''}</b><span class="q">${e.pos ? esc(e.pos) + ' pos · ' : ''}${fmt(e.kg)} kg</span>
+        ${g.list.map((e, ix) => `<div class="er ${e.estado === 'entregada' ? 'ok' : e.estado === 'cancelada' ? 'canc' : ''}" data-src="entx" data-id="${esc(e.id)}">
+          <b><span class="ordn">${ordenDia(d, e.id)}</span> ${esc(e.cliente)} <span class="tg ${accDe(e) === 'entregar' ? 'gr' : 'mid'}">${ACC[accDe(e)].ic} ${ACC[accDe(e)].lbl}</span>${e.estado === 'entregada' ? ' <span class="tg ok">Hecha</span>' : ''}</b>
+          <span class="q">${accDe(e) === 'cobrar' && !e.kg && !e.pos ? '—' : (e.pos ? esc(e.pos) + ' pos · ' : '') + fmt(e.kg) + ' kg'}<span class="mv"><button title="Subir" onclick="event.stopPropagation();entMover('${esc(e.id)}',-1)" ${ix === 0 ? 'disabled' : ''}>▲</button><button title="Bajar" onclick="event.stopPropagation();entMover('${esc(e.id)}',1)" ${ix === g.list.length - 1 ? 'disabled' : ''}>▼</button></span></span>
+          ${cobra(e) && e.cobrar ? `<span class="d" style="color:var(--mid);font-weight:600">💵 Cobrar: ${esc(e.cobrar)}</span>` : ''}
           ${e.oc || e.producto ? `<span class="d">${e.oc ? 'OC ' + esc(e.oc) : ''}${e.oc && e.producto ? ' · ' : ''}${esc(e.producto || '')}</span>` : ''}
           ${e.lugar || e.horario ? `<span class="d">📍 ${esc(e.lugar || '—')}${e.horario ? ` · 🕑 ${esc(e.horario)}` : ''}</span>` : ''}
           ${e.obs ? `<span class="d" style="font-style:italic">📝 ${esc(e.obs)}</span>` : ''}</div>`).join('')}
@@ -752,16 +774,19 @@ function formEnt(o) {
     <div class="w" id="e_ep" style="width:100%"></div>
     <div class="f"><label>OC (opcional)</label><input id="e_oc" value="${esc(o.oc || '')}" placeholder="Nº de OC"></div>
     <div class="f"><label>Producto (opcional)</label><input id="e_pr" value="${esc(o.producto || '')}" placeholder="Ej: F40, PET 321×300"></div>
+    <div class="f w"><label>Tipo de parada</label><div class="tsel" id="e_acc">${Object.keys(ACC).map(k => `<button type="button" class="${accDe(o) === k ? 'on' : ''}" data-a="${k}" onclick="entAcc('${k}')">${ACC[k].ic}<small style="color:inherit;font-weight:600;font-size:12.5px">${ACC[k].lbl}</small></button>`).join('')}</div></div>
+    <div class="f w e-cob"><label>Qué cobrar</label><input id="e_cb" value="${esc(o.cobrar || '')}" placeholder="Ej: cheque Fc 0001-1234 · $ 850.000 · retirar cheques"></div>
     <div class="f"><label>Posiciones</label><input type="number" min="0" step="1" id="e_p" value="${esc(o.pos || '')}"></div>
     <div class="f"><label>Kg</label><input type="number" min="0" step="1" id="e_k" value="${esc(o.kg || '')}" oninput="entCalc()"></div>
-    <div class="f w"><label>Lugar de entrega</label><input id="e_l" list="e_ll" value="${esc(o.lugar || '')}" placeholder="Dirección / depósito"><datalist id="e_ll">${lugares.map(c => `<option value="${esc(c)}">`).join('')}</datalist></div>
+    <div class="f w"><label>Dirección / lugar de entrega</label><input id="e_l" list="e_ll" value="${esc(o.lugar || '')}" placeholder="Dirección / depósito"><datalist id="e_ll">${lugares.map(c => `<option value="${esc(c)}">`).join('')}</datalist></div>
     <div class="f"><label>Horario (opcional)</label><input id="e_h" value="${esc(o.horario || '')}" placeholder="Ej: 8 a 12 hs, antes de las 14"></div>
     <div class="f"><label>Estado</label><select id="e_s">${Object.keys(ST_ENT).map(k => `<option value="${k}" ${o.estado === k ? 'selected' : ''}>${ST_ENT[k]}</option>`).join('')}</select></div>
     <div class="f w"><label>Observaciones</label><textarea id="e_o" rows="2" placeholder="Ej: llamar antes, pedir remito firmado, descarga con autoelevador…">${esc(o.obs || '')}</textarea></div>
     <div class="info" id="e_info"></div>`,
     `<div>${o.id ? `<button class="btn bad" onclick="borrarEnt()">🗑 Borrar</button>` : ''}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="cerrar()">Cancelar</button>${o.id ? '' : `<button class="btn" onclick="guardarEnt(true)">💾 Guardar y cargar otra</button>`}<button class="btn pri" onclick="guardarEnt()">💾 Guardar</button></div>`);
-  entCalc(); entHint();
+  ED.accion = accDe(o); entAcc(ED.accion); entCalc(); entHint();
 }
+function entAcc(k) { ED.accion = k; document.querySelectorAll('#e_acc button').forEach(b => b.classList.toggle('on', b.getAttribute('data-a') === k)); document.querySelectorAll('.e-cob').forEach(e => e.style.display = k === 'entregar' ? 'none' : ''); }
 function entAuto() { entHint(); const u = entUltimo(v('e_c')); if (!u) return; if (!vt('e_l') && u.lugar) $('e_l').value = u.lugar; if (!vt('e_h') && u.horario) $('e_h').value = u.horario; entCalc(); }
 function entHint() {
   const c = vt('e_c'), cb = cobCli(c), n = epPendientes().filter(o => o.cli && o.cli.toLowerCase() === c.toLowerCase()).length;
@@ -794,13 +819,13 @@ function entCalc() {
   $('e_info').innerHTML = `Viaje ${n} del ${dm(f)}: ${otros.length} entrega${otros.length === 1 ? '' : 's'} más · total <b>${fmt(kg)} kg</b> de ${capTxt('Eugenio')} → <b style="color:${occCol(p)}">${pct(p)}</b>${p > 1 ? ' · <b style="color:var(--bad)">se pasa de la capacidad</b>' : ''}${barra(p)}`;
 }
 async function guardarEnt(otra) {
-  const o = Object.assign({}, ED, { oc: vt('e_oc'), producto: vt('e_pr'), fecha: v('e_f'), viaje: +v('e_v') || 1, cliente: vt('e_c'), pos: +v('e_p') || '', kg: +v('e_k') || '', lugar: vt('e_l'), horario: vt('e_h'), obs: vt('e_o'), estado: v('e_s'), mod: nowISO() });
+  const o = Object.assign({}, ED, { accion: ED.accion || 'entregar', cobrar: (ED.accion || 'entregar') === 'entregar' ? '' : vt('e_cb'), oc: vt('e_oc'), producto: vt('e_pr'), fecha: v('e_f'), viaje: +v('e_v') || 1, cliente: vt('e_c'), pos: +v('e_p') || '', kg: +v('e_k') || '', lugar: vt('e_l'), horario: vt('e_h'), obs: vt('e_o'), estado: v('e_s'), mod: nowISO() });
   if (!o.fecha) return toast('Falta la fecha', true);
   if (!o.cliente) return toast('Falta el cliente', true);
-  if (!o.kg && !o.pos) return toast('Poné los kg o las posiciones', true);
-  if (!o.id) { o.id = uid('EN'); o.creado = o.mod; const g = entViajesDia(o.fecha).find(x => x.n === o.viaje); o.orden = g ? g.list.length + 1 : 1; }
+  if (o.accion !== 'cobrar' && !o.kg && !o.pos) return toast('Poné los kg o las posiciones (o elegí Solo cobrar)', true);
+  if (!o.id) { o.id = uid('EN'); o.creado = o.mod; const g = entViajesDia(o.fecha).find(x => x.n === o.viaje); o.orden = g ? Math.max(g.list.length, ...g.list.map(x => +x.orden || 0)) + 1 : 1; }
   const ok = await escribir('Entregas', () => entWrite(d => { const i = d.entregas.findIndex(x => x.id === o.id); if (i >= 0) d.entregas[i] = o; else d.entregas.push(o); }));
-  if (ok && otra) formEnt({ fecha: o.fecha, viaje: o.viaje, cliente: '', pos: '', kg: '', lugar: '', horario: '', obs: '', estado: 'programada' });
+  if (ok && otra) formEnt({ fecha: o.fecha, viaje: o.viaje, cliente: '', pos: '', kg: '', lugar: '', horario: '', obs: '', estado: 'programada', accion: 'entregar' });
 }
 async function borrarEnt() {
   if (!await confirmar('¿Borrar esta entrega?', 'Borrar')) return;
@@ -818,48 +843,63 @@ async function entWrite(mut) {
   S.ent = d;
 }
 function entWhats(f) {
-  let t = `*Entregas Eugenio · ${DIASL[dow(f)]} ${dm(f)}*\n`;
+  let t = `*Ruta del día · Eugenio · ${DIASL[dow(f)]} ${dm(f)}*\n`;
   entViajesDia(f).forEach(g => {
     t += `\n*Viaje ${g.n}* (${g.pos ? g.pos + ' pos · ' : ''}${fmt(g.kg)} kg)\n`;
-    g.list.filter(e => e.estado !== 'cancelada').forEach((e, i) => { t += `${i + 1}. *${e.cliente}* — ${e.pos ? e.pos + ' pos · ' : ''}${fmt(e.kg)} kg${e.oc ? ' · OC ' + e.oc : ''}${e.producto ? ' · ' + e.producto : ''}\n   📍 ${e.lugar || '—'}${e.horario ? '\n   🕑 ' + e.horario : ''}${e.obs ? '\n   📝 ' + e.obs : ''}\n`; });
+    g.list.filter(e => e.estado !== 'cancelada').forEach((e, i) => { t += `${ordenDia(f, e.id)}. *${e.cliente}* — ${ACC[accDe(e)].pdf}${accDe(e) === 'cobrar' && !e.kg ? '' : ' · ' + (e.pos ? e.pos + ' pos · ' : '') + fmt(e.kg) + ' kg'}${e.oc ? ' · OC ' + e.oc : ''}${e.producto ? ' · ' + e.producto : ''}\n   📍 ${e.lugar || '—'}${e.horario ? '\n   🕑 ' + e.horario : ''}${cobra(e) && e.cobrar ? '\n   💵 Cobrar: ' + e.cobrar : ''}${e.obs ? '\n   📝 ' + e.obs : ''}\n`; });
   });
   const fin = () => toast('Copiado — pegalo en WhatsApp');
   if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(t).then(fin, () => prompt('Copiá el texto:', t)); else prompt('Copiá el texto:', t);
 }
 async function hojaRuta(f) {
-  const doc = pdfNuevo('portrait'); if (!doc) return;
+  const doc = pdfNuevo('landscape'); if (!doc) return;
   const logo = await logoData(), W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 10;
-  pdfEncabezado(doc, 'Hoja de ruta · Entregas Eugenio', `${DIASL[dow(f)]} ${dm(f)}/${f.slice(0, 4)}`, [63, 138, 31], logo);
-  let y = 32;
-  const C = [M, M + 8, M + 52, M + 112, M + 140, M + 162], hdr = ['#', 'Cliente', 'Lugar de entrega', 'Horario', 'Posic.', 'Kg'];
-  entViajesDia(f).forEach(g => {
+  const vs = entViajesDia(f), todas = vs.flatMap(g => g.list.filter(e => e.estado !== 'cancelada'));
+  const nCob = todas.filter(cobra).length;
+  pdfEncabezado(doc, 'Ruta del día · Eugenio', `${DIASL[dow(f)]} ${dm(f)}/${f.slice(0, 4)} · ${todas.length} parada${todas.length === 1 ? '' : 's'} · ${vs.length} viaje${vs.length === 1 ? '' : 's'}${nCob ? ' · ' + nCob + ' con cobro' : ''}`, [63, 138, 31], logo);
+  let y = 30;
+  // columnas: Orden | Cliente (OC/producto) | Dirección | Tipo | Horario | Posic. | Kg | Observaciones | ✓
+  const C = { o: M, c: M + 10, d: M + 66, t: M + 128, h: M + 162, p: M + 190, k: M + 204, ob: M + 222, ok: W - M - 8 };
+  const head = () => { doc.setFillColor(243, 244, 246); doc.rect(M, y, W - 2 * M, 6, 'F'); doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(107, 114, 128);
+    [['ORD.', C.o], ['CLIENTE', C.c], ['DIRECCIÓN / LUGAR', C.d], ['TIPO', C.t], ['HORARIO', C.h], ['POS.', C.p], ['KG', C.k], ['OBSERVACIONES', C.ob], ['OK', C.ok]].forEach(([t, x]) => doc.text(t, x + 1.2, y + 4)); y += 6; };
+  vs.forEach(g => {
     const p = entOcc(g), vivas = g.list.filter(e => e.estado !== 'cancelada');
-    if (y > H - 50) { doc.addPage(); y = 14; }
-    doc.setFillColor(241, 248, 234); doc.setDrawColor(210, 232, 193); doc.roundedRect(M, y, W - 2 * M, 10, 2, 2, 'FD');
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(63, 138, 31); doc.text(`Viaje ${g.n}`, M + 4, y + 6.7);
-    doc.setFontSize(9); doc.setTextColor(31, 41, 55); doc.text(`${vivas.length} entrega${vivas.length === 1 ? '' : 's'} · ${g.pos ? g.pos + ' posiciones · ' : ''}${fmt(g.kg)} kg · ${pct(p)} de ${capTxt('Eugenio')}`, W - M - 4, y + 6.7, { align: 'right' });
-    y += 13;
-    doc.setFillColor(243, 244, 246); doc.rect(M, y, W - 2 * M, 6, 'F'); doc.setFontSize(7); doc.setTextColor(107, 114, 128); hdr.forEach((t, i) => doc.text(t.toUpperCase(), C[i] + 1.5, y + 4)); y += 6;
-    vivas.forEach((e, i) => {
+    if (y > H - 40) { doc.addPage(); y = 14; }
+    doc.setFillColor(241, 248, 234); doc.setDrawColor(210, 232, 193); doc.roundedRect(M, y, W - 2 * M, 9, 2, 2, 'FD');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(63, 138, 31); doc.text(`Viaje ${g.n}`, M + 4, y + 6.2);
+    doc.setFontSize(9); doc.setTextColor(31, 41, 55); doc.text(`${vivas.length} parada${vivas.length === 1 ? '' : 's'} · ${g.pos ? g.pos + ' posiciones · ' : ''}${fmt(g.kg)} kg · ${pct(p)} de ${capTxt('Eugenio')}`, W - M - 4, y + 6.2, { align: 'right' });
+    y += 11; head();
+    vivas.forEach(e => {
+      const a = accDe(e);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
-      const cl = doc.splitTextToSize(e.cliente, 42).concat(e.oc || e.producto ? doc.splitTextToSize([e.oc ? 'OC ' + e.oc : '', e.producto || ''].filter(Boolean).join(' · '), 42) : []), lu = doc.splitTextToSize(e.lugar || '—', 58), ho = doc.splitTextToSize(e.horario || '—', 26), ob = e.obs ? doc.splitTextToSize('Obs.: ' + e.obs, W - 2 * M - 12) : [];
-      const h = Math.max(cl.length, lu.length, ho.length) * 3.8 + ob.length * 3.6 + 5;
-      if (y + h > H - 12) { doc.addPage(); y = 14; }
-      doc.setTextColor(31, 41, 55); doc.setFont('helvetica', 'bold'); doc.text(String(i + 1), C[0] + 1.5, y + 4.5); doc.text(cl, C[1] + 1.5, y + 4.5);
-      doc.setFont('helvetica', 'normal'); doc.text(lu, C[2] + 1.5, y + 4.5); doc.text(ho, C[3] + 1.5, y + 4.5);
-      doc.text(e.pos ? String(e.pos) : '—', C[4] + 1.5, y + 4.5); doc.setFont('helvetica', 'bold'); doc.text(fmt(e.kg), C[5] + 1.5, y + 4.5);
-      if (ob.length) { doc.setFont('helvetica', 'italic'); doc.setFontSize(7.8); doc.setTextColor(107, 114, 128); doc.text(ob, C[1] + 1.5, y + 4.5 + Math.max(cl.length, lu.length, ho.length) * 3.8); }
-      // casilla para firma / tilde
-      doc.setDrawColor(209, 213, 219); doc.rect(W - M - 9, y + 1.6, 4, 4);
-      doc.setDrawColor(243, 244, 246); doc.line(M, y + h, W - M, y + h); y += h;
+      const cl = doc.splitTextToSize(e.cliente, 54), sub = e.oc || e.producto ? doc.splitTextToSize([e.oc ? 'OC ' + e.oc : '', e.producto || ''].filter(Boolean).join(' · '), 54) : [];
+      const di = doc.splitTextToSize(e.lugar || '—', 60), ho = doc.splitTextToSize(e.horario || '—', 26);
+      const obT = [a !== 'entregar' && e.cobrar ? 'COBRAR: ' + e.cobrar : '', e.obs || ''].filter(Boolean).join(' · ');
+      const ob = doc.splitTextToSize(obT || '—', C.ok - C.ob - 3);
+      const tp = doc.splitTextToSize(ACC[a].pdf, 32);
+      const h = Math.max(cl.length + sub.length, di.length, ho.length, ob.length, tp.length) * 3.9 + 4;
+      if (y + h > H - 14) { doc.addPage(); y = 14; head(); }
+      if (a !== 'entregar') { doc.setFillColor(253, 246, 227); doc.rect(M, y, W - 2 * M, h, 'F'); }
+      doc.setFillColor(63, 138, 31); doc.circle(C.o + 4.5, y + 3.6, 3, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.text(String(ordenDia(f, e.id)), C.o + 4.5, y + 4.7, { align: 'center' });
+      doc.setTextColor(31, 41, 55); doc.text(cl, C.c + 1.2, y + 4.4);
+      if (sub.length) { doc.setFont('helvetica', 'normal'); doc.setFontSize(7.6); doc.setTextColor(107, 114, 128); doc.text(sub, C.c + 1.2, y + 4.4 + cl.length * 3.9); }
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(31, 41, 55); doc.text(di, C.d + 1.2, y + 4.4); doc.text(ho, C.h + 1.2, y + 4.4);
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(...(a === 'entregar' ? [31, 41, 55] : [161, 98, 7])); doc.text(tp, C.t + 1.2, y + 4.4);
+      doc.setTextColor(31, 41, 55); doc.setFont('helvetica', 'normal'); doc.text(e.pos ? String(e.pos) : '—', C.p + 1.2, y + 4.4); doc.setFont('helvetica', 'bold'); doc.text(e.kg ? fmt(e.kg) : '—', C.k + 1.2, y + 4.4);
+      doc.setFont('helvetica', obT ? 'normal' : 'normal'); doc.setFontSize(8); doc.setTextColor(...(a !== 'entregar' && e.cobrar ? [120, 70, 5] : [75, 85, 99])); doc.text(ob, C.ob + 1.2, y + 4.4);
+      doc.setDrawColor(156, 163, 175); doc.setLineWidth(.3); doc.rect(C.ok + 1.5, y + 1.4, 4.2, 4.2);
+      doc.setDrawColor(229, 231, 235); doc.line(M, y + h, W - M, y + h); y += h;
     });
-    y += 6;
+    y += 5;
   });
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(107, 114, 128);
-  if (y < H - 30) { doc.text('Firma chofer: ______________________', M, H - 18); doc.text('Hora salida: ________   Hora regreso: ________', W - M, H - 18, { align: 'right' }); }
+  if (!vs.length) { doc.setFont('helvetica', 'italic'); doc.setFontSize(10); doc.setTextColor(107, 114, 128); doc.text('Sin entregas cargadas para este día.', M, 40); }
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(75, 85, 99);
+  if (y > H - 24) { doc.addPage(); y = 20; }
+  const yf = Math.max(y + 8, H - 18);
+  doc.text('Firma chofer: ______________________', M, yf); doc.text('Hora salida: ________   Hora regreso: ________   Km: ________', W - M, yf, { align: 'right' });
   pdfPie(doc);
-  doc.save(`hoja-de-ruta_eugenio_${f}.pdf`);
-  toast('Hoja de ruta descargada');
+  doc.save(`ruta-del-dia_eugenio_${f}.pdf`);
+  toast('Ruta del día descargada');
 }
 
 /* ═════════ PDF ═════════ */
@@ -895,8 +935,9 @@ function pdfPie(doc) {
 function pdfLineas(it) {
   // título + renglones de cada tarjeta, igual a lo que se ve en pantalla
   const o = it.o;
-  if (it.src === 'via') { const x = o[it.leg] || {}, u = legUso(o, it.leg), p = legOcc(o, it.leg);
-    return { k: 'via', t: `${o.transporte || '—'} · ${it.leg === 'ida' ? 'IDA a Lanús' : 'VUELTA a Chivilcoy'}${x.hora ? ' ' + x.hora : ''}`, l: [x.carga || 'Vacío', `${u ? uTxt(o.transporte, u) + ' · ' : ''}${pct(p)} ocupado${o.estado === 'cancelado' ? ' · CANCELADO' : o.estado === 'realizado' ? ' · realizado' : ''}`], occ: p }; }
+  if (it.src === 'via') { const ln = l => { const x = o[l] || {}, u = legUso(o, l); return `${l === 'ida' ? 'Lanús>Chivi' : 'Chivi>Lanús'}: ${x.carga || 'vacío'} (${u ? uTxt(o.transporte, u) + ', ' : ''}${pct(legOcc(o, l))})`; };
+    const p = (legOcc(o, 'ida') + legOcc(o, 'vuelta')) / 2;
+    return { k: 'via', t: `${o.transporte || '—'}${o.hora ? ' ' + o.hora : ''}${o.estado === 'cancelado' ? ' · CANCELADO' : ''}`, l: [ln('ida'), ln('vuelta')], occ: isNaN(p) ? null : p }; }
   if (it.src === 'ent') { const g = it.g;
     return { k: 'ent', t: `Eugenio · Viaje ${g.n}`, l: g.list.map(e => `${e.cliente}${e.horario ? ' (' + e.horario + ')' : ''}${e.kg ? ' · ' + fmt(e.kg) + ' kg' : ''}`).concat([`${g.pos ? g.pos + ' pos. · ' : ''}${fmt(g.kg)} kg · ${pct(entOcc(g))}`]), occ: entOcc(g) }; }
   if (it.src === 'pet') { const p = petPed(o.pedidoId);
@@ -977,8 +1018,8 @@ async function pdfAnalisis() {
   const tot = v => (legOcc(v, 'ida') + legOcc(v, 'vuelta')) / 2;
   pdfEncabezado(doc, 'Análisis de viajes · Chivilcoy ↔ Lanús'.replace('↔', '-'), `${PERS[S.per]} · ${dm(d1)}/${d1.slice(0, 4)} al ${dm(d2)}/${d2.slice(0, 4)}`, [109, 79, 194], logo);
   // KPIs
-  const vac = vs.filter(v => !legUso(v, 'vuelta') && !(v.vuelta && v.vuelta.carga)).length;
-  const K = [[String(vs.length), 'Viajes', null], [pct(prom(vs.map(tot))), 'Ocupación total', prom(vs.map(tot))], [pct(prom(vs.map(v => legOcc(v, 'ida')))), 'Ocupación ida', prom(vs.map(v => legOcc(v, 'ida')))], [pct(prom(vs.map(v => legOcc(v, 'vuelta')))), 'Ocupación vuelta', prom(vs.map(v => legOcc(v, 'vuelta')))], [String(vac), 'Vueltas vacías', null]];
+  const vac = vs.reduce((s, v) => s + ['ida', 'vuelta'].filter(l => !legUso(v, l) && !(v[l] && v[l].carga)).length, 0);
+  const K = [[String(vs.length), 'Viajes', null], [pct(prom(vs.map(tot))), 'Ocupación total', prom(vs.map(tot))], [pct(prom(vs.map(v => legOcc(v, 'ida')))), 'Ocup. Lanús>Chivi', prom(vs.map(v => legOcc(v, 'ida')))], [pct(prom(vs.map(v => legOcc(v, 'vuelta')))), 'Ocup. Chivi>Lanús', prom(vs.map(v => legOcc(v, 'vuelta')))], [String(vac), 'Tramos vacíos', null]];
   const kw = (W - 2 * M - 4 * 3) / 5; let y = 30;
   K.forEach((k, i) => { const x = M + i * (kw + 3); doc.setDrawColor(229, 231, 235); doc.setFillColor(255, 255, 255); doc.setLineWidth(.25); doc.roundedRect(x, y, kw, 17, 2.5, 2.5, 'FD');
     doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.setTextColor(...(k[2] != null ? occRGB(k[2]) : [31, 41, 55])); doc.text(k[0], x + 3.5, y + 8.5);
@@ -996,18 +1037,18 @@ async function pdfAnalisis() {
     doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(156, 163, 175); doc.text(`${capTxt(t)} por tramo · ${xs.length} viaje${xs.length === 1 ? '' : 's'}`, x + 4, y + 11.5);
     doc.setFont('helvetica', 'bold'); doc.setFontSize(18); doc.setTextColor(...occRGB(pt)); doc.text(pct(pt), x + 4, y + 21);
     const fila = (lbl, val, yy, col) => { doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(107, 114, 128); doc.text(lbl, x + 4, yy); doc.setFont('helvetica', 'bold'); doc.setTextColor(...(col || [31, 41, 55])); doc.text(val, x + tw - 4, yy, { align: 'right' }); };
-    fila('Ida', pct(pi), y + 27); fila('Vuelta', pct(pv), y + 31); fila('Movido / disponible', `${uTxt(t, usado)} de ${uTxt(t, disp)}`, y + 35); fila('Lugar sin usar', uTxt(t, Math.max(0, disp - usado)), y + 39, disp - usado > 0 ? [180, 35, 24] : [14, 122, 73]);
+    fila('Lanús > Chivilcoy', pct(pi), y + 27); fila('Chivilcoy > Lanús', pct(pv), y + 31); fila('Movido / disponible', `${uTxt(t, usado)} de ${uTxt(t, disp)}`, y + 35); fila('Lugar sin usar', uTxt(t, Math.max(0, disp - usado)), y + 39, disp - usado > 0 ? [180, 35, 24] : [14, 122, 73]);
   });
   y += 50;
   // detalle
   doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(15, 138, 95); doc.text('DETALLE DE VIAJES', M, y); y += 3;
-  const C = [M, M + 22, M + 42, M + 92, M + 112, M + 162, M + 182], hdr = ['Fecha', 'Transporte', 'Ida · lleva', 'Ocup.', 'Vuelta · trae', 'Ocup.', 'Total'];
+  const C = [M, M + 22, M + 42, M + 92, M + 112, M + 162, M + 182], hdr = ['Fecha', 'Transporte', 'Lanús > Chivilcoy', 'Ocup.', 'Chivilcoy > Lanús', 'Ocup.', 'Total'];
   const cab = () => { doc.setFillColor(243, 244, 246); doc.rect(M, y, W - 2 * M, 6, 'F'); doc.setFont('helvetica', 'bold'); doc.setFontSize(7); doc.setTextColor(107, 114, 128); hdr.forEach((h, i) => doc.text(h.toUpperCase(), C[i] + 1.5, y + 4)); y += 6; };
   cab();
   if (!vs.length) { doc.setFont('helvetica', 'italic'); doc.setFontSize(8); doc.text('No hay viajes en el período.', M + 2, y + 6); }
   vs.forEach(v => {
     doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
-    const li = doc.splitTextToSize(`${(v.ida && v.ida.carga) || '—'} (${uTxt(v.transporte, legUso(v, 'ida'))})`, 48), lv = doc.splitTextToSize(`${(v.vuelta && v.vuelta.carga) || (legUso(v, 'vuelta') ? '' : 'Vacío')} (${uTxt(v.transporte, legUso(v, 'vuelta'))})`, 48);
+    const li = doc.splitTextToSize(`${(v.ida && v.ida.carga) || (legUso(v, 'ida') ? '' : 'Vacío')} (${uTxt(v.transporte, legUso(v, 'ida'))})`, 48), lv = doc.splitTextToSize(`${(v.vuelta && v.vuelta.carga) || (legUso(v, 'vuelta') ? '' : 'Vacío')} (${uTxt(v.transporte, legUso(v, 'vuelta'))})`, 48);
     const h = Math.max(li.length, lv.length) * 3.3 + 3;
     if (y + h > H - 12) { doc.addPage(); y = 14; cab(); }
     doc.setTextColor(31, 41, 55);
@@ -1036,7 +1077,7 @@ function whatsapp() {
 }
 function txtItem(it) {
   const o = it.o;
-  if (it.src === 'via') { const x = o[it.leg] || {}; return `${o.transporte} ${it.leg === 'ida' ? 'IDA a Lanús' : 'VUELTA a Chivilcoy'}${x.hora ? ' ' + x.hora : ''}${o.estado === 'cancelado' ? ' (CANCELADO)' : ''}: ${x.carga || 'vacío'}${legUso(o, it.leg) ? ' (' + uTxt(o.transporte, legUso(o, it.leg)) + ')' : ''}`; }
+  if (it.src === 'via') { const x = o.ida || {}, y = o.vuelta || {}; return `${o.transporte}${o.hora ? ' ' + o.hora : ''}${o.estado === 'cancelado' ? ' (CANCELADO)' : ''} · Lanús→Chivilcoy: ${x.carga || 'vacío'}${legUso(o, 'ida') ? ' (' + uTxt(o.transporte, legUso(o, 'ida')) + ')' : ''} · Chivilcoy→Lanús: ${y.carga || 'vacío'}${legUso(o, 'vuelta') ? ' (' + uTxt(o.transporte, legUso(o, 'vuelta')) + ')' : ''}`; }
   if (it.src === 'ent') { const g = it.g; return `Eugenio viaje ${g.n}: ` + g.list.map(e => `${e.cliente}${e.horario ? ' (' + e.horario + ')' : ''}${e.kg ? ' ' + fmt(e.kg) + ' kg' : ''}`).join(', '); }
   if (it.src === 'pet') { const p = petPed(o.pedidoId); return p ? `${p.cliente} OP ${p.nroOP || '-'} ${p.ancho || ''}x${p.espesor || ''} · ${fmt(o.kgPlan)} kg` : `${o.pCli || '?'} ${o.pDesc || ''} (proyectada) · ${fmt(o.kgPlan)} kg`; }
   if (it.src === 'ter') { const ev = TER_EVT[o.prod]; return `${o.turno} ${ev ? ev.lbl : o.prod}${o.meta ? ' · ' + o.meta + ' pal.' : ''}${(o.operarios || []).length ? ' · ' + o.operarios.join(', ') : ''}`; }
@@ -1058,7 +1099,7 @@ function nuevo(area, fecha) {
   if (!area) return modal(`Agregar · ${DIASL[dow(fecha)]} ${dm(fecha)}`, `<div class="area-pick">${AREAS.map(a => `<button style="border-left:5px solid ${a.col}" onclick="nuevo('${a.id}','${fecha}')">${a.id === 'via' ? '🚚 ' : ''}${a.nom}<small>${a.sub}${errArea(a.id) ? ' · sin conexión' : ''}</small></button>`).join('')}</div>`);
   if (errArea(area)) return toast('Sin conexión con ' + AREA[area].nom + ': ' + errArea(area), true);
   if (area === 'ent') return formEnt({ fecha, viaje: entViajeLibre(fecha), cliente: '', pos: '', kg: '', lugar: '', horario: '', obs: '', estado: 'programada' });
-  if (area === 'via') return formVia({ transporte: '', estado: 'programado', ida: { fecha, hora: '', carga: '', pos: '', kg: '' }, vuelta: { fecha, hora: '', carga: '', pos: '', kg: '' } });
+  if (area === 'via') return formVia({ fmt: 3, transporte: '', estado: 'programado', fecha, hora: '', ida: { carga: '', pos: '', kg: '', items: [] }, vuelta: { carga: '', pos: '', kg: '' } });
   if (area === 'pet') return formPet({ fecha, status: 'pendiente', kgPlan: 0 }, fecha);
   if (area === 'ter') return formTer({ fecha, turno: diaTurnoTer(fecha), prod: '', meta: 0, operarios: [], obs: '' });
   return formLam({ fecha, maq: AREA[area].maq, turno: 'Todo el día', ocId: '', proy: false, pCli: '', pDesc: '', operario: '', kgObj: null, nota: '' });
@@ -1077,26 +1118,45 @@ function editar(src, id, f) {
 let ED = null;
 function formVia(o) {
   ED = o; const cs = caps();
+  ED.ida = ED.ida || {}; ED.ida.items = (ED.ida.items || []).slice();
   const legF = (l, x) => {
     const ida = l === 'ida';
-    return `<div class="lb ${ida ? 'ida' : 'vue'}"><div class="lbt"><span>${ida ? '⬆ Ida · Chivilcoy → Lanús' : '⬇ Vuelta · Lanús → Chivilcoy'}</span><span class="tg gr" id="${l}_pc">—</span></div>
-      <div class="f"><label>Fecha</label><input type="date" id="${l}_f" value="${esc(x.fecha || '')}" ${ida ? `onchange="const w=$('vuelta_f');if(!w.value||w.value<this.value||w.dataset.ig!=='0')w.value=this.value"` : `oninput="this.dataset.ig='0'"`}></div>
-      <div class="f"><label>Hora (opcional)</label><input type="time" id="${l}_h" value="${esc(x.hora || '')}"></div>
-      <div class="f w"><label>${ida ? 'Qué lleva' : 'Qué trae'}</label><textarea id="${l}_c" rows="2" placeholder="${ida ? 'Ej: bobinas F40 y T900, PET Don Yeyo, pallets de Bligraf…' : 'Ej: PE para laminar, scrap, conos, insumos… (vacío si vuelve sin carga)'}">${esc(x.carga || '')}</textarea></div>
+    return `<div class="lb ${ida ? 'ida' : 'vue'}"><div class="lbt"><span>${ida ? '⬆ Ida · Lanús → Chivilcoy' : '⬇ Vuelta · Chivilcoy → Lanús'}</span><span class="tg gr" id="${l}_pc">—</span></div>
+      <div class="f w"><label>${ida ? 'Qué lleva a Chivilcoy' : 'Qué trae a Lanús'}</label><textarea id="${l}_c" rows="2" placeholder="${ida ? 'Ej: PE para laminar, scrap, conos, insumos… (vacío si va sin carga)' : 'Ej: bobinas F40 y T900, PET Don Yeyo, pallets de Bligraf…'}">${esc(x.carga || '')}</textarea></div>
       <div class="f u-pos"><label>Posiciones ocupadas</label><input type="number" min="0" id="${l}_p" value="${esc(x.pos || '')}" oninput="viaCalc()"></div>
       <div class="f u-kg"><label>Kg cargados</label><input type="number" min="0" step="10" id="${l}_k" value="${esc(x.kg || '')}" oninput="viaCalc()"></div>
-      <div style="width:100%" id="${l}_bar"></div></div>`;
+      <div style="width:100%" id="${l}_bar"></div>
+      ${ida ? `<div style="width:100%"><div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px"><label style="font-size:12px;font-weight:700;color:var(--text2)">Detalle para el remito Lanús → Chivilcoy</label>${x.remito ? `<span class="tg ok">Remito ${esc(remNro(x.remito))} emitido</span>` : ''}</div><div id="it_box"></div>
+        <button type="button" class="btn sm" style="margin-top:6px" onclick="itAdd()">+ Agregar línea</button></div>` : '<div class="note" style="width:100%">El remito de Chivilcoy → Lanús lo emite PET Chivilcoy.</div>'}</div>`;
   };
-  modal(o.id ? '🚚 Editar viaje' : '🚚 Nuevo viaje Chivilcoy ↔ Lanús', `
+  modal(o.id ? '🚚 Editar viaje' : '🚚 Nuevo viaje · Lanús → Chivilcoy → Lanús', `
     <div class="f w"><label>Transporte</label><div class="tsel">${Object.keys(cs).map(t => `<button type="button" class="${o.transporte === t ? 'on' : ''}" data-t="${esc(t)}" onclick="viaTr(this)">${esc(t)}<small>${capTxt(t)}</small></button>`).join('')}</div></div>
+    <div class="f"><label>Fecha del viaje</label><input type="date" id="v_f" value="${esc(o.fecha || '')}"><span class="h">Sale de Lanús, carga en Chivilcoy y vuelve el mismo día</span></div>
+    <div class="f"><label>Hora de salida (opcional)</label><input type="time" id="v_h" value="${esc(o.hora || '')}"></div>
     ${legF('ida', o.ida || {})}
-    <div style="width:100%;display:flex;justify-content:flex-end;margin:-4px 0"><button class="btn sm" type="button" onclick="$('vuelta_f').value=$('ida_f').value">Vuelta el mismo día de la ida</button></div>
     ${legF('vuelta', o.vuelta || {})}
     <div class="f"><label>Estado</label><select id="v_est">${Object.keys(ST_VIA).map(k => `<option value="${k}" ${o.estado === k ? 'selected' : ''}>${ST_VIA[k]}</option>`).join('')}</select></div>
     <div class="f"><label>Nota</label><input id="v_nota" value="${esc(o.nota || '')}" placeholder="Opcional"></div>`,
-    pieForm('guardarVia()', o.id ? 'borrarVia()' : ''), true);
-  viaCalc();
+    `<div>${o.id ? `<button class="btn bad" onclick="borrarVia()">🗑 Borrar</button>` : ''}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="cerrar()">Cancelar</button><button class="btn" onclick="guardarVia(true)">💾 Guardar y emitir remito</button><button class="btn pri" onclick="guardarVia()">💾 Guardar</button></div>`, true);
+  itRender(); viaCalc();
 }
+/* líneas del remito (ida) */
+const UNIDADES = ['Pallets', 'Bultos', 'Bobinas', 'Cajas', 'Bolsas', 'Kg', 'Unidades'];
+function itLeer() { document.querySelectorAll('#it_box .itr').forEach((r, i) => { const it = ED.ida.items[i]; if (!it) return; it.desc = r.querySelector('.i_d').value.trim(); it.cant = r.querySelector('.i_c').value; it.unid = r.querySelector('.i_u').value; it.kg = r.querySelector('.i_k').value; }); }
+function itRender() {
+  const box = $('it_box'); if (!box) return;
+  box.innerHTML = ED.ida.items.length ? `<div style="display:grid;grid-template-columns:1fr 64px 96px 80px 28px;gap:5px;font-size:11px;font-weight:700;color:var(--text3);margin-top:6px"><span>Descripción</span><span>Cant.</span><span>Unidad</span><span>Kg</span><span></span></div>`
+    + ED.ida.items.map((it, i) => `<div class="itr" style="display:grid;grid-template-columns:1fr 64px 96px 80px 28px;gap:5px;margin-top:4px">
+      <input class="i_d" value="${esc(it.desc || '')}" placeholder="Ej: PE cristal 320 mm para laminar" style="border:1px solid var(--border2);border-radius:8px;padding:6px 8px">
+      <input class="i_c" type="number" min="0" step="any" value="${esc(it.cant || '')}" style="border:1px solid var(--border2);border-radius:8px;padding:6px 6px">
+      <select class="i_u" style="border:1px solid var(--border2);border-radius:8px;padding:6px 4px">${UNIDADES.map(u => `<option ${u === (it.unid || 'Pallets') ? 'selected' : ''}>${u}</option>`).join('')}</select>
+      <input class="i_k" type="number" min="0" step="any" value="${esc(it.kg || '')}" oninput="itKg()" style="border:1px solid var(--border2);border-radius:8px;padding:6px 6px">
+      <button type="button" class="btn sm" onclick="itDel(${i})" title="Quitar">✕</button></div>`).join('')
+    : '<div class="note" style="margin-top:4px">Sin líneas: el remito usa el texto de "Qué lleva". Agregá líneas para detallar cantidades y kg.</div>';
+}
+function itAdd() { itLeer(); ED.ida.items.push({ desc: '', cant: '', unid: 'Pallets', kg: '' }); itRender(); const r = document.querySelectorAll('#it_box .i_d'); if (r.length) r[r.length - 1].focus(); }
+function itDel(i) { itLeer(); ED.ida.items.splice(i, 1); itRender(); itKg(); }
+function itKg() { const c = caps()[ED.transporte]; if (!c || c.u !== 'kg') return; itLeer(); const t = ED.ida.items.reduce((s, x) => s + (+x.kg || 0), 0); if (t) { $('ida_k').value = Math.round(t); viaCalc(); } }
 function viaTr(btn) { document.querySelectorAll('.tsel button').forEach(b => b.classList.toggle('on', b === btn)); ED.transporte = btn.getAttribute('data-t'); viaCalc(); }
 function viaCalc() {
   const c = caps()[ED.transporte];
@@ -1108,18 +1168,135 @@ function viaCalc() {
     $(l + '_bar').innerHTML = barra(p);
   });
 }
-async function guardarVia() {
-  const leg = l => ({ fecha: v(l + '_f'), hora: v(l + '_h'), carga: vt(l + '_c'), pos: +v(l + '_p') || '', kg: +v(l + '_k') || '' });
-  const o = Object.assign({}, ED, { ida: leg('ida'), vuelta: leg('vuelta'), estado: v('v_est'), nota: vt('v_nota'), mod: nowISO() });
+async function guardarVia(conRemito) {
+  itLeer();
+  const items = (ED.ida.items || []).filter(x => x.desc || x.cant || x.kg).map(x => ({ desc: x.desc, cant: +x.cant || '', unid: x.unid || 'Pallets', kg: +x.kg || '' }));
+  const leg = l => Object.assign({}, ED[l] || {}, { carga: vt(l + '_c'), pos: +v(l + '_p') || '', kg: +v(l + '_k') || '' });
+  const o = Object.assign({}, ED, { fmt: 3, fecha: v('v_f'), hora: v('v_h'), ida: Object.assign(leg('ida'), { items }), vuelta: leg('vuelta'), estado: v('v_est'), nota: vt('v_nota'), mod: nowISO() });
   if (!o.transporte) return toast('Elegí el transporte (Aguirre, Monti o Eugenio)', true);
-  if (!o.ida.fecha) return toast('Falta la fecha de la ida', true);
-  if (!o.vuelta.fecha) o.vuelta.fecha = o.ida.fecha;
-  if (o.vuelta.fecha < o.ida.fecha) return toast('La vuelta no puede ser antes que la ida', true);
+  if (!o.fecha) return toast('Falta la fecha del viaje', true);
   if (!o.id) { o.id = uid('VJ'); o.creado = o.mod; }
-  ['fecha', 'hora', 'lleva', 'trae', 'pallets'].forEach(k => delete o[k]); // campos del formato viejo
-  await escribir('Viajes', () => viaWrite(d => { const i = d.viajes.findIndex(x => x.id === o.id); if (i >= 0) d.viajes[i] = o; else d.viajes.push(o); }));
+  ['lleva', 'trae', 'pallets'].forEach(k => delete o[k]);
+  delete o.ida.fecha; delete o.ida.hora; delete o.vuelta.fecha; delete o.vuelta.hora;
+  const ok = await escribir('Viajes', () => viaWrite(d => { const i = d.viajes.findIndex(x => x.id === o.id); if (i >= 0) d.viajes[i] = o; else d.viajes.push(o); }));
+  if (ok && conRemito) formRemito(o.id);
+}
+
+/* ═════════ REMITO LANÚS → CHIVILCOY ═════════ */
+const PLANTAS = {
+  lanus: { nom: 'WINFLEX S.A. · Planta Lanús', dom: 'Pichincha 3369 (CP1825) Lanús, Bs. As.' },
+  chivi: { nom: 'WINFLEX S.A. · Planta Chivilcoy', dom: 'Ruta Nac. N° 5, km 160 (CP6620) Chivilcoy, Bs. As.' },
+};
+function remNro(r) { return r ? (r.pv || '0002') + '-' + String(r.nro || '').padStart(8, '0') : ''; }
+function formRemito(id) {
+  const vj = viajesVivos().find(x => x.id === id); if (!vj) return toast('Guardá el viaje primero', true);
+  const r = (vj.ida && vj.ida.remito) || {};
+  const pv = r.pv || (S.via && S.via.remPV) || '0002', nro = r.nro || (S.via && S.via.remProx) || 1;
+  const items = (vj.ida.items || []);
+  modal(r.nro ? `📄 Remito ${esc(remNro(r))}` : '📄 Emitir remito Lanús → Chivilcoy', `
+    <div class="info">${r.nro ? 'Este viaje ya tiene remito. Podés reimprimirlo o corregir los datos (mantiene el número).' : 'Se toma el próximo número de la serie de Lanús. Lo podés cambiar si hace falta (ej. para seguir el talonario).'}</div>
+    <div class="f"><label>Punto de venta</label><input id="r_pv" maxlength="4" value="${esc(pv)}" class="mono"></div>
+    <div class="f"><label>N° de remito</label><input id="r_nro" type="number" min="1" value="${esc(nro)}" class="mono"></div>
+    <div class="f"><label>Fecha</label><input id="r_f" type="date" value="${esc(r.fecha || vj.fecha || hoyISO())}"></div>
+    <div class="f"><label>Transporte</label><input id="r_tr" value="${esc(r.transporte || vj.transporte || '')}"></div>
+    <div class="f"><label>Chofer (opcional)</label><input id="r_ch" value="${esc(r.chofer || '')}"></div>
+    <div class="f"><label>Patente (opcional)</label><input id="r_pa" value="${esc(r.patente || '')}" class="mono"></div>
+    <div class="f w"><label>Observaciones (opcional)</label><textarea id="r_obs" rows="2">${esc(r.obs || '')}</textarea></div>
+    <div class="info"><b>Detalle:</b> ${items.length ? items.map(x => `${esc(x.desc || '—')} · ${x.cant ? esc(x.cant) + ' ' + esc((x.unid || '').toLowerCase()) : ''}${x.kg ? ' · ' + fmt(x.kg) + ' kg' : ''}`).join(' | ') : esc(vj.ida.carga || '(sin detalle — cargalo en el viaje)')}
+      <div style="margin-top:6px"><button type="button" class="btn sm" onclick="cerrar();editar('via','${esc(vj.id)}')">✏️ Editar detalle del viaje</button></div></div>`,
+    `<div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="cerrar()">Cancelar</button><button class="btn pri" onclick="emitirRemito('${esc(vj.id)}')">${r.nro ? '💾 Guardar y reimprimir' : '📄 Emitir e imprimir'}</button></div>`);
+}
+async function emitirRemito(id) {
+  const vj = viajesVivos().find(x => x.id === id); if (!vj) return;
+  if (!(vj.ida.items || []).length && !vj.ida.carga) return toast('El viaje no tiene detalle de lo que lleva a Chivilcoy', true);
+  const pv = (vt('r_pv') || '0002').padStart(4, '0'), nro = parseInt(v('r_nro')) || 0;
+  if (!nro) return toast('Falta el número de remito', true);
+  const usado = viajesVivos().find(x => x.id !== id && x.ida && x.ida.remito && x.ida.remito.pv === pv && +x.ida.remito.nro === nro);
+  if (usado) return toast(`El remito ${pv}-${String(nro).padStart(8, '0')} ya está usado (viaje del ${dm(usado.fecha)})`, true);
+  const prev = vj.ida.remito || {};
+  const rem = { pv, nro, fecha: v('r_f') || hoyISO(), transporte: vt('r_tr'), chofer: vt('r_ch'), patente: vt('r_pa'), obs: vt('r_obs'), emitido: prev.emitido || nowISO(), mod: nowISO() };
+  const ok = await escribir('Viajes', () => viaWrite(d => {
+    const x = d.viajes.find(y => y.id === id); if (!x) throw new Error('El viaje ya no existe');
+    x.ida = x.ida || {}; x.ida.remito = rem; x.mod = nowISO();
+    if (nro >= (d.remProx || 1)) d.remProx = nro + 1;
+    d.remPV = pv;
+  }));
+  if (ok) remitoPDF(id);
+}
+let LOGO_REM = null;
+async function logoRemito() { if (LOGO_REM !== null) return LOGO_REM; try { const b = await (await fetch('logo-remito.png')).blob(); LOGO_REM = await new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(b); }); } catch (_) { LOGO_REM = ''; } return LOGO_REM; }
+async function remitoPDF(id) {
+  const vj = viajesVivos().find(x => x.id === id); if (!vj || !vj.ida || !vj.ida.remito) return toast('El viaje no tiene remito emitido', true);
+  const doc = pdfNuevo('portrait'); if (!doc) return;
+  const logo = await logoRemito(), r = vj.ida.remito, nroTxt = remNro(r);
+  const W = 210, H = 297, M = 14, NEG = [20, 20, 20], GR = [95, 95, 95], GR2 = [150, 150, 150], LIN = [200, 200, 200], FON = [246, 246, 246];
+  const S2 = x => (x === null || x === undefined || x === '' ? '-' : String(x).replace(/[→↔]/g, '>').replace(/[^\x20-\x7Eáéíóúñü°ÁÉÍÓÚÑÜ²³%·\/\-\(\):,.°"µ×]/g, ' '));
+  const T = (t, x, y, o = {}) => { doc.setFont('helvetica', o.b ? 'bold' : 'normal'); doc.setFontSize(o.s || 9); doc.setTextColor(...(o.c || NEG)); doc.text(S2(t), x, y, { align: o.a || 'left', maxWidth: o.w }); };
+  const caja = (x, y, w, h, fill) => { doc.setDrawColor(...LIN); doc.setLineWidth(0.3); if (fill) { doc.setFillColor(...FON); doc.roundedRect(x, y, w, h, 1.5, 1.5, 'FD'); } else doc.roundedRect(x, y, w, h, 1.5, 1.5); };
+  let pag = 1;
+  const encabezado = () => {
+    if (logo) { try { doc.addImage(logo, 'PNG', M, 10, 34, 18); } catch (_) { T('WINFLEX S.A.', M, 20, { b: true, s: 16 }); } } else T('WINFLEX S.A.', M, 20, { b: true, s: 16 });
+    T('WINFLEX S.A.', M + 39, 14.5, { b: true, s: 11 });
+    T('CUIT 30-61048777-3', M + 39, 19, { s: 8, c: GR });
+    T('Domicilio legal y planta: ' + PLANTAS.lanus.dom, M + 39, 22.5, { s: 7.5, c: GR });
+    T('Planta: ' + PLANTAS.chivi.dom, M + 39, 26, { s: 7.5, c: GR });
+    T('Tel. (011) 4289-1001 · (02346) 30-8005', M + 39, 29.5, { s: 7.5, c: GR });
+    doc.setDrawColor(...NEG); doc.setLineWidth(0.6); doc.roundedRect(W - M - 52, 9, 52, 21, 2, 2);
+    T('REMITO', W - M - 26, 16, { b: true, s: 15, a: 'center' });
+    T('N° ' + nroTxt, W - M - 26, 22, { b: true, s: 10, a: 'center' });
+    T('Fecha: ' + dm(r.fecha) + '/' + r.fecha.slice(0, 4), W - M - 26, 27, { s: 9, a: 'center', c: GR });
+    doc.setDrawColor(...NEG); doc.setLineWidth(0.4); doc.line(M, 33.5, W - M, 33.5);
+    T('TRASLADO ENTRE PLANTAS · LANÚS > CHIVILCOY', W / 2, 38.5, { b: true, s: 9, a: 'center', c: GR });
+    return 43;
+  };
+  const pie = () => { T(`Remito ${nroTxt} · Hoja ${pag}`, W - M, H - 8, { s: 7.5, c: GR2, a: 'right' }); T('Winflex S.A. · Planta Lanús', M, H - 8, { s: 7.5, c: GR2 }); };
+  let y = encabezado();
+  const bw = (W - 2 * M - 4) / 2;
+  const bloque = (x, tit, l1, l2, l3) => { caja(x, y, bw, 25); T(tit, x + 3, y + 5, { b: true, s: 7.5, c: GR }); T(l1, x + 3, y + 11, { b: true, s: 10.5, w: bw - 6 }); T(l2, x + 3, y + 16.5, { s: 8.5, w: bw - 6 }); if (l3) T(l3, x + 3, y + 21, { s: 8, c: GR, w: bw - 6 }); };
+  bloque(M, 'DESTINATARIO', PLANTAS.chivi.nom, 'CUIT 30-61048777-3', 'Domicilio: ' + PLANTAS.chivi.dom);
+  bloque(M + bw + 4, 'TRANSPORTE', r.transporte || vj.transporte || '-', r.chofer ? 'Chofer: ' + r.chofer : 'Chofer: ______________________', r.patente ? 'Patente: ' + r.patente : 'Patente: ____________');
+  y += 30;
+  // detalle
+  const items = (vj.ida.items || []).length ? vj.ida.items : [{ desc: vj.ida.carga, cant: vj.ida.pos || '', unid: vj.ida.pos ? 'Pallets' : '', kg: vj.ida.kg || '' }];
+  const totKg = items.reduce((s, x) => s + (+x.kg || 0), 0);
+  const porU = {}; items.forEach(x => { if (x.cant && x.unid && x.unid !== 'Kg') porU[x.unid] = (porU[x.unid] || 0) + (+x.cant || 0); });
+  caja(M, y, W - 2 * M, 14, true);
+  const cols = Object.keys(porU).slice(0, 3).map(u => [u.toUpperCase(), fmt(porU[u])]).concat([['KG', totKg ? fmt(totKg) : '-'], ['LÍNEAS', String(items.length)]]);
+  const cw = (W - 2 * M) / cols.length;
+  cols.forEach(([k, val], i) => { T(k, M + cw * i + cw / 2, y + 5, { s: 7, c: GR, a: 'center', b: true }); T(val, M + cw * i + cw / 2, y + 11, { s: 12, b: true, a: 'center' }); });
+  y += 20;
+  T('DETALLE DE LA MERCADERÍA', M, y, { b: true, s: 9, c: GR }); y += 4;
+  const X = { n: M + 3, d: M + 12, c: W - M - 62, u: W - M - 40, k: W - M - 3 };
+  doc.setFillColor(...FON); doc.rect(M, y, W - 2 * M, 6, 'F');
+  T('#', X.n, y + 4.2, { b: true, s: 8 }); T('Descripción', X.d, y + 4.2, { b: true, s: 8 }); T('Cantidad', X.c, y + 4.2, { b: true, s: 8, a: 'right' }); T('Unidad', X.u, y + 4.2, { b: true, s: 8 }); T('Kg', X.k, y + 4.2, { b: true, s: 8, a: 'right' });
+  y += 6;
+  items.forEach((x, i) => {
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+    const dl = doc.splitTextToSize(S2(x.desc || '-'), X.c - X.d - 20), h = Math.max(6, dl.length * 4 + 2);
+    if (y + h > H - 70) { pie(); doc.addPage(); pag++; y = encabezado(); }
+    T(String(i + 1), X.n, y + 4.2, { s: 9 }); doc.setTextColor(...NEG); doc.text(dl, X.d, y + 4.2);
+    T(x.cant ? fmt(x.cant) : '-', X.c, y + 4.2, { s: 9, a: 'right' }); T(x.cant ? (x.unid || '') : '', X.u, y + 4.2, { s: 9 }); T(x.kg ? fmt(x.kg) : '-', X.k, y + 4.2, { s: 9, a: 'right' });
+    y += h; doc.setDrawColor(...LIN); doc.setLineWidth(0.2); doc.line(M, y, W - M, y);
+  });
+  doc.setDrawColor(...NEG); doc.setLineWidth(0.6); doc.line(M, y + 1, W - M, y + 1);
+  T('TOTAL', M, y + 7, { b: true, s: 11 }); T(Object.keys(porU).map(u => fmt(porU[u]) + ' ' + u.toLowerCase()).join(' · '), M + 40, y + 7, { s: 10 }); T(totKg ? fmt(totKg) + ' kg' : '', W - M, y + 7, { b: true, s: 12, a: 'right' });
+  y += 15;
+  const obs = [r.obs, vj.nota].filter(Boolean).join(' · ');
+  if (obs) { const ls = doc.splitTextToSize(S2(obs), W - 2 * M - 6); caja(M, y, W - 2 * M, ls.length * 4.2 + 9); T('OBSERVACIONES', M + 3, y + 5, { b: true, s: 7.5, c: GR }); doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...NEG); doc.text(ls, M + 3, y + 10); y += ls.length * 4.2 + 14; }
+  T('Documento interno de traslado de mercadería entre plantas de Winflex S.A. No válido como factura.', M, Math.min(y + 4, H - 60), { s: 7.5, c: GR2 });
+  y = H - 52;
+  const fw = (W - 2 * M - 16) / 3;
+  [['Entregó (Winflex Lanús)', 'Firma y aclaración'], ['Transporte', r.transporte || vj.transporte || ''], ['Recibió conforme (Chivilcoy)', 'Firma, aclaración y fecha']].forEach(([t, sub], i) => {
+    const x = M + i * (fw + 8);
+    doc.setDrawColor(...GR); doc.setLineWidth(0.3); doc.line(x, y + 18, x + fw, y + 18);
+    T(t, x, y + 23, { b: true, s: 8.5 }); T(sub, x, y + 27, { s: 7.5, c: GR, w: fw });
+  });
+  pie();
+  doc.save(`Remito_${nroTxt}_Lanus-Chivilcoy.pdf`);
+  toast('Remito ' + nroTxt + ' descargado');
 }
 async function borrarVia() {
+  if (ED.ida && ED.ida.remito && !await confirmar('Este viaje tiene el remito ' + remNro(ED.ida.remito) + ' emitido. Si lo borrás, el número queda sin viaje. ¿Seguir?', 'Seguir')) return;
   if (!await confirmar('¿Borrar este viaje (ida y vuelta)?', 'Borrar')) return;
   const id = ED.id;
   await escribir('Viajes', () => viaWrite(d => { d.viajes = d.viajes.filter(x => x.id !== id); d.viajesEliminados[id] = nowISO(); }));
@@ -1131,7 +1308,7 @@ async function viaWrite(mut) {
   const lim = new Date(Date.now() - 120 * 864e5).toISOString();
   Object.keys(d.viajesEliminados).forEach(k => { if (d.viajesEliminados[k] < lim) delete d.viajesEliminados[k]; });
   d.viajes = d.viajes.filter(x => !d.viajesEliminados[x.id]);
-  await gistPatch({ 'viajes.json': { content: JSON.stringify({ version: 2, viajes: d.viajes, viajesEliminados: d.viajesEliminados, capacidades: d.capacidades, lastUpdate: nowISO() }) } });
+  await gistPatch({ 'viajes.json': { content: JSON.stringify({ version: 3, viajes: d.viajes, viajesEliminados: d.viajesEliminados, capacidades: d.capacidades, remProx: d.remProx, remPV: d.remPV, lastUpdate: nowISO() }) } });
   S.via = d;
 }
 
