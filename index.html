@@ -158,6 +158,65 @@ main{padding:18px 24px 40px;max-width:1800px;margin:0 auto}
 .sec{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:22px 0 10px}
 .sec h3{margin:0;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gd)}
 
+
+/* ── Entregas v2.6: barra de días + ruta del día ── */
+.edays{display:grid;grid-template-columns:repeat(7,minmax(118px,1fr));gap:8px;overflow-x:auto;padding:2px 2px 8px}
+.eday{background:#fff;border:1px solid var(--border);border-radius:14px;padding:10px 12px;cursor:pointer;text-align:left;box-shadow:var(--sh);transition:box-shadow .15s,border-color .15s;min-width:0;font:inherit;color:inherit}
+.eday:hover{box-shadow:var(--sh2)}
+.eday .dn{font-size:12px;font-weight:700;color:var(--text2);display:flex;justify-content:space-between;align-items:center}
+.eday .dd{font-size:19px;font-weight:700;margin-top:1px}
+.eday .ds{font-size:11.5px;color:var(--text3);margin-top:3px;min-height:15px}
+.eday .ds b{color:var(--text);font-weight:600}
+.eday.on{border:2px solid var(--ent);box-shadow:0 0 0 4px var(--ent-l),var(--sh);padding:9px 11px}
+.eday.vac .dd,.eday.vac .dn{color:var(--text3)}
+.eday .hoyb{background:var(--ent);color:#fff;font-size:9.5px;font-weight:800;padding:1px 6px;border-radius:5px}
+.eday .cobd{font-size:11px}
+.rhead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:16px 0 10px}
+.rhead h2{margin:0;font-size:20px}
+.rhead .sp{flex:1}
+.rhead .sum{font-size:13px;color:var(--text2)}
+.vbox{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh);margin-bottom:14px;overflow:hidden}
+.vbh{display:flex;align-items:center;gap:14px;padding:12px 16px;background:#fafbfa;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.vbh .vt{font-size:15px;font-weight:800;color:var(--ent)}
+.vbh .vm{font-size:12.5px;color:var(--text2)}
+.vbh .cap{flex:1;min-width:180px;display:flex;align-items:center;gap:8px}
+.vbh .cap .occ{flex:1;height:9px;margin:0}
+.vbh .cap b{font-family:var(--mono);font-size:13px;min-width:42px;text-align:right}
+.stop{display:grid;grid-template-columns:44px 1fr auto;gap:12px;padding:12px 16px;border-top:1px solid #f1f2f4;align-items:start;cursor:pointer}
+.stop:first-of-type{border-top:none}
+.stop:hover{background:#fbfcfb}
+.stop .num{width:32px;height:32px;border-radius:50%;background:var(--ent);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:14px;margin-top:1px}
+.stop.done .num{background:#9ca3af}
+.stop.done .sc b{text-decoration:line-through;color:var(--text2)}
+.stop.canc{opacity:.45}
+.stop .sc b{font-size:15px}
+.stop .sl{font-size:12.5px;color:var(--text2);margin-top:3px;display:flex;flex-wrap:wrap;gap:4px 14px}
+.stop .cob{margin-top:6px;display:inline-block;background:var(--midl);color:#7a4a05;font-size:12.5px;font-weight:600;padding:3px 9px;border-radius:8px}
+.stop .ob{font-size:12px;color:var(--text2);font-style:italic;margin-top:4px}
+.stop .sr{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.stop .kg{font-family:var(--mono);font-size:15px;font-weight:500;white-space:nowrap}
+.stop .kg small{display:block;font-size:11.5px;color:var(--text3)}
+.stop .acts{display:flex;gap:4px}
+.stop .acts button{border:1px solid var(--border2);background:#fff;border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer;color:var(--text2)}
+.stop .acts button:hover{background:#f3f4f6}
+.stop .acts button:disabled{opacity:.3;cursor:default}
+.stop .acts button.ok{border-color:#cdebd9;color:var(--ok)}
+.tipo{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:2px}
+.tipo.entregar{background:#eef0f2;color:var(--text2)}
+.tipo.entcob,.tipo.cobrar{background:var(--midl);color:#8a5a06}
+.addrow{display:flex;gap:8px;padding:10px 16px;border-top:1px dashed var(--border2);background:#fcfdfc;flex-wrap:wrap}
+.addrow button{border:1px dashed var(--border2);background:#fff;border-radius:10px;padding:7px 12px;font-weight:600;font-size:12.5px;color:var(--ent);cursor:pointer}
+.addrow button:hover{background:var(--ent-l)}
+.vacio{background:#fff;border:1px dashed var(--border2);border-radius:16px;padding:34px 20px;text-align:center;color:var(--text2)}
+.vacio b{display:block;font-size:16px;color:var(--text);margin-bottom:4px}
+@media (max-width:760px){
+  .edays{grid-template-columns:repeat(7,104px)}
+  .stop{grid-template-columns:36px 1fr;gap:10px}
+  .stop .num{width:28px;height:28px;font-size:13px}
+  .stop .sr{grid-column:2;flex-direction:row;justify-content:space-between;align-items:center;text-align:left}
+  .rhead h2{font-size:18px}
+}
+
 /* ── análisis ── */
 .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
 .kpi{background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:var(--sh);padding:14px 16px;min-width:0}
@@ -259,7 +318,7 @@ table.t tr.cl{cursor:pointer}table.t tr.cl:hover td{background:#fafafa}
 
 <script>
 'use strict';
-const VERSION = 'v2.5';
+const VERSION = 'v2.6';
 document.getElementById('ver').textContent = '· ' + VERSION;
 
 /* ═════════ CONEXIONES (las mismas que usan las apps) ═════════ */
@@ -538,6 +597,7 @@ function render() {
   $('tabs').innerHTML = TABS.map(t => `<button class="tab ${S.tab === t.id ? 'on' : ''}" onclick="irTab('${t.id}')">${t.lbl}</button>`).join('');
   if (S.err.pet === 'Falta conectar' && !S.lam && !S.ter) { $('app').innerHTML = ''; return renderConexion(); }
   $('app').innerHTML = S.tab === 'ent' ? tabEntregas() : S.tab === 'viajes' ? tabViajes() : S.tab === 'anal' ? tabAnalisis() : tabCrono();
+  if (S.tab === 'ent') { const e = document.querySelector('.eday.on'), bar = document.querySelector('.edays'); if (e && bar && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = e.offsetLeft - bar.clientWidth / 2 + e.clientWidth / 2; }
   if (S.tab === 'crono' && window.innerWidth < 760 && !render._scrolled && ultCarga) { const e = document.querySelector('.day.hoy'); if (e) { render._scrolled = true; setTimeout(() => e.scrollIntoView({ block: 'start' }), 50); } }
 }
 function errArea(id) { const k = id === 'via' || id === 'ent' ? 'via' : id === 'pet' ? 'pet' : id === 'ter' ? 'ter' : 'lam'; return S.err[k] || ''; }
@@ -732,42 +792,72 @@ function entUltimo(cli) { // último lugar / horario usado para ese cliente
   const xs = entVivas().filter(e => e.cliente && e.cliente.toLowerCase() === String(cli).trim().toLowerCase()).sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
   return xs[0] || null;
 }
+function entDiaSel(ds) {
+  const hoy = hoyISO();
+  if (S.entDia && ds.includes(S.entDia)) return S.entDia;
+  if (ds.includes(hoy)) return hoy;
+  return ds.find(d => entViajesDia(d).length) || ds[0];
+}
+function selDiaEnt(d) { S.entDia = d; render(); }
+function semanaEnt(n) { S.entDia = null; semana(n); }
+function entResumen(d) {
+  const vs = entViajesDia(d), es = vs.flatMap(g => g.list.filter(e => e.estado !== 'cancelada'));
+  return { vs, n: es.length, kg: vs.reduce((s, g) => s + g.kg, 0), pos: vs.reduce((s, g) => s + g.pos, 0), cob: es.filter(cobra).length, hechas: es.filter(e => e.estado === 'entregada').length };
+}
 function tabEntregas() {
-  const ds = dias(), hoy = hoyISO();
+  const ds = dias(), hoy = hoyISO(), sel = entDiaSel(ds);
   let nE = 0, kg = 0, nV = 0; const occs = [];
   ds.forEach(d => entViajesDia(d).forEach(g => { nV++; nE += g.list.filter(e => e.estado !== 'cancelada').length; kg += g.kg; occs.push(entOcc(g)); }));
   const prom = occs.length ? occs.reduce((s, x) => s + x, 0) / occs.length : null;
   let h = `<div class="hero ent"><div><div class="s">Semana del ${dLargo(ds[0])} al ${dLargo(ds[6])} · camión de Eugenio (${capTxt('Eugenio')})</div><div class="t">Entregas a clientes</div></div>
-    <div class="r"><div><small>Entregas</small><b>${nE}</b></div><div><small>Viajes</small><b>${nV}</b></div><div><small>Kg</small><b>${fmt(kg)}</b></div><div><small>Ocupación prom.</small><b>${pct(prom)}</b></div></div></div>
-    <div class="bar"><button class="btn ic" onclick="semana(-1)">◀</button><button class="btn" onclick="semana(0)">Hoy</button><button class="btn ic" onclick="semana(1)">▶</button>
-    <span style="flex:1"></span><button class="btn ent" onclick="nuevo('ent','${ds.includes(hoy) ? hoy : ds[0]}')">📦 Nueva entrega</button></div>`;
+    <div class="r"><div><small>Paradas</small><b>${nE}</b></div><div><small>Viajes</small><b>${nV}</b></div><div><small>Kg</small><b>${fmt(kg)}</b></div><div><small>Ocupación prom.</small><b>${pct(prom)}</b></div></div></div>
+    <div class="bar"><button class="btn ic" onclick="semanaEnt(-1)">◀</button><button class="btn" onclick="semanaEnt(0)">Esta semana</button><button class="btn ic" onclick="semanaEnt(1)">▶</button><span class="note" style="margin-left:6px">Elegí el día para ver y armar su ruta</span></div>`;
   if (S.err.via) return h + `<div class="info">Sin conexión: ${esc(S.err.via)}</div>`;
-  h += `<div class="egrid">`;
-  ds.forEach(d => {
-    const vs = entViajesDia(d);
-    h += `<div class="ed ${d === hoy ? 'hoy' : ''}" id="ed-${d}"><div class="eh"><span><b>${dLargo(d)}</b>${d === hoy ? ' <span class="tg" style="background:var(--ent);color:#fff">HOY</span>' : ''}</span>
-      <span style="display:flex;gap:6px;flex-wrap:wrap">${vs.length ? `<button class="btn sm" onclick="hojaRuta('${d}')">📄 Ruta del día</button><button class="btn sm" onclick="entWhats('${d}')">📋 WhatsApp</button>` : ''}<button class="btn sm ent" onclick="formEnt({fecha:'${d}',viaje:entViajeLibre('${d}'),cliente:'',pos:'',kg:'',lugar:'',horario:'',obs:'',estado:'programada'})">+ Entrega</button></span></div>`;
-    if (!vs.length) h += `<div class="ee"><span>Sin entregas</span></div>`;
-    vs.forEach(g => {
-      const p = entOcc(g);
-      h += `<div class="ev"><div class="evh"><span>🚐 Viaje ${g.n}</span><span class="mono">${g.pos ? g.pos + ' pos. · ' : ''}${fmt(g.kg)} kg · <span class="tg ${occCls(p)}">${pct(p)}</span></span></div>${barra(p)}
-        ${g.list.map((e, ix) => `<div class="er ${e.estado === 'entregada' ? 'ok' : e.estado === 'cancelada' ? 'canc' : ''}" data-src="entx" data-id="${esc(e.id)}">
-          <b><span class="ordn">${ordenDia(d, e.id)}</span> ${esc(e.cliente)} <span class="tg ${accDe(e) === 'entregar' ? 'gr' : 'mid'}">${ACC[accDe(e)].ic} ${ACC[accDe(e)].lbl}</span>${e.estado === 'entregada' ? ' <span class="tg ok">Hecha</span>' : ''}</b>
-          <span class="q">${accDe(e) === 'cobrar' && !e.kg && !e.pos ? '—' : (e.pos ? esc(e.pos) + ' pos · ' : '') + fmt(e.kg) + ' kg'}<span class="mv"><button title="Subir" onclick="event.stopPropagation();entMover('${esc(e.id)}',-1)" ${ix === 0 ? 'disabled' : ''}>▲</button><button title="Bajar" onclick="event.stopPropagation();entMover('${esc(e.id)}',1)" ${ix === g.list.length - 1 ? 'disabled' : ''}>▼</button></span></span>
-          ${cobra(e) && e.cobrar ? `<span class="d" style="color:var(--mid);font-weight:600">💵 Cobrar: ${esc(e.cobrar)}</span>` : ''}
-          ${e.oc || e.producto ? `<span class="d">${e.oc ? 'OC ' + esc(e.oc) : ''}${e.oc && e.producto ? ' · ' : ''}${esc(e.producto || '')}</span>` : ''}
-          ${e.lugar || e.horario ? `<span class="d">📍 ${esc(e.lugar || '—')}${e.horario ? ` · 🕑 ${esc(e.horario)}` : ''}</span>` : ''}
-          ${e.obs ? `<span class="d" style="font-style:italic">📝 ${esc(e.obs)}</span>` : ''}</div>`).join('')}
-        <div style="margin-top:8px;text-align:right"><button class="btn sm" onclick="formEnt({fecha:'${d}',viaje:${g.n},cliente:'',pos:'',kg:'',lugar:'',horario:'',obs:'',estado:'programada'})">+ Agregar al viaje ${g.n}</button>${g.n === Math.max(...vs.map(x => x.n)) ? ` <button class="btn sm" onclick="formEnt({fecha:'${d}',viaje:${g.n + 1},cliente:'',pos:'',kg:'',lugar:'',horario:'',obs:'',estado:'programada'})">+ Viaje ${g.n + 1}</button>` : ''}</div></div>`;
+  // barra de días
+  h += `<div class="edays">` + ds.map(d => {
+    const r = entResumen(d);
+    return `<button class="eday ${d === sel ? 'on' : ''} ${r.n ? '' : 'vac'}" onclick="selDiaEnt('${d}')">
+      <div class="dn"><span>${DIAS[dow(d)]}</span>${d === hoy ? '<span class="hoyb">HOY</span>' : ''}</div>
+      <div class="dd">${+d.slice(8, 10)} ${MESES[+d.slice(5, 7) - 1]}</div>
+      <div class="ds">${r.n ? `<b>${r.n}</b> parada${r.n === 1 ? '' : 's'} · ${fmt(r.kg)} kg${r.cob ? ` <span class="cobd" title="Con cobro">· 💵${r.cob}</span>` : ''}` : 'Sin entregas'}</div></button>`;
+  }).join('') + `</div>`;
+  // ruta del día elegido
+  const r = entResumen(sel);
+  const nueva = n => `formEnt({fecha:'${sel}',viaje:${n},cliente:'',pos:'',kg:'',lugar:'',horario:'',obs:'',estado:'programada',accion:'entregar'})`;
+  h += `<div class="rhead"><h2>${DIASL[dow(sel)]} ${+sel.slice(8, 10)} de ${MESES[+sel.slice(5, 7) - 1]}${sel === hoy ? ' · hoy' : ''}</h2>
+    <span class="sum">${r.n ? `${r.n} parada${r.n === 1 ? '' : 's'} · ${r.vs.length} viaje${r.vs.length === 1 ? '' : 's'} · ${r.pos ? r.pos + ' pos. · ' : ''}${fmt(r.kg)} kg${r.cob ? ` · ${r.cob} con cobro` : ''}${r.hechas ? ` · ${r.hechas} hecha${r.hechas === 1 ? '' : 's'}` : ''}` : ''}</span>
+    <span class="sp"></span>
+    ${r.n ? `<button class="btn" onclick="hojaRuta('${sel}')">📄 Ruta del día (PDF)</button><button class="btn" onclick="entWhats('${sel}')">📋 WhatsApp</button>` : ''}
+    <button class="btn ent" onclick="${nueva(entViajeLibre(sel))}">＋ Agregar parada</button></div>`;
+  if (!r.vs.length) return h + `<div class="vacio"><b>No hay entregas cargadas para este día</b>Agregá la primera parada: cliente, dirección, kg y si hay que cobrar.<div style="margin-top:14px"><button class="btn ent" onclick="${nueva(1)}">＋ Agregar parada</button></div></div>`;
+  r.vs.forEach((g, gi) => {
+    const p = entOcc(g);
+    h += `<div class="vbox"><div class="vbh"><span class="vt">🚐 Viaje ${g.n}</span><span class="vm">${g.list.filter(e => e.estado !== 'cancelada').length} parada${g.list.length === 1 ? '' : 's'} · ${g.pos ? g.pos + ' pos. · ' : ''}${fmt(g.kg)} kg</span>
+      <span class="cap"><span class="note">Carga</span>${barra(p)}<b style="color:${occCol(p)}">${pct(p)}</b></span></div>`;
+    g.list.forEach((e, ix) => {
+      const a = accDe(e), hecha = e.estado === 'entregada', sinCarga = a === 'cobrar' && !e.kg && !e.pos;
+      h += `<div class="stop ${hecha ? 'done' : ''} ${e.estado === 'cancelada' ? 'canc' : ''}" data-src="entx" data-id="${esc(e.id)}">
+        <div class="num">${ordenDia(sel, e.id)}</div>
+        <div class="sc"><b>${esc(e.cliente)}</b><span class="tipo ${a}">${ACC[a].ic} ${ACC[a].lbl}</span>${e.estado === 'cancelada' ? ' <span class="tg bad">Cancelada</span>' : ''}
+          <div class="sl"><span>📍 ${e.lugar ? esc(e.lugar) : '<i>sin dirección</i>'}</span>${e.horario ? `<span>🕑 ${esc(e.horario)}</span>` : ''}${e.oc || e.producto ? `<span>🧾 ${[e.oc ? 'OC ' + esc(e.oc) : '', esc(e.producto || '')].filter(Boolean).join(' · ')}</span>` : ''}</div>
+          ${a !== 'entregar' ? `<div class="cob">💵 Cobrar: ${e.cobrar ? esc(e.cobrar) : '<i>sin detalle</i>'}</div>` : ''}
+          ${e.obs ? `<div class="ob">📝 ${esc(e.obs)}</div>` : ''}</div>
+        <div class="sr"><div class="kg">${sinCarga ? '—' : fmt(e.kg) + ' kg'}${!sinCarga && e.pos ? `<small>${esc(e.pos)} pos.</small>` : ''}</div>
+          <div class="acts"><button title="Subir en la ruta" onclick="event.stopPropagation();entMover('${esc(e.id)}',-1)" ${ix === 0 ? 'disabled' : ''}>▲</button><button title="Bajar en la ruta" onclick="event.stopPropagation();entMover('${esc(e.id)}',1)" ${ix === g.list.length - 1 ? 'disabled' : ''}>▼</button><button class="${hecha ? 'ok' : ''}" title="${hecha ? 'Marcar pendiente' : 'Marcar hecha'}" onclick="event.stopPropagation();entHecha('${esc(e.id)}')">${hecha ? '✓ Hecha' : '✓'}</button></div></div></div>`;
     });
-    h += `</div>`;
+    h += `<div class="addrow"><button onclick="${nueva(g.n)}">＋ Parada al viaje ${g.n}</button>${gi === r.vs.length - 1 ? `<button onclick="${nueva(g.n + 1)}">＋ Armar viaje ${g.n + 1}</button>` : ''}</div></div>`;
   });
-  return h + `</div>`;
+  return h;
+}
+async function entHecha(id) {
+  const e = entVivas().find(x => x.id === id); if (!e) return;
+  const nuevo = e.estado === 'entregada' ? 'programada' : 'entregada';
+  await escribir('Entregas', () => entWrite(d => { const y = d.entregas.find(z => z.id === id); if (y) { y.estado = nuevo; y.mod = nowISO(); } }));
 }
 function formEnt(o) {
   ED = o; const clis = entClientes(), lugares = [...new Set(entVivas().map(e => e.lugar).filter(Boolean))].sort();
   const nViajes = Math.max(2, (+o.viaje || 1), ...entViajesDia(o.fecha).map(g => g.n + 1));
-  modal(o.id ? '📦 Editar entrega' : '📦 Nueva entrega · Eugenio', `
+  modal(o.id ? '📦 Editar parada' : '📦 Nueva parada · Eugenio', `
     <div class="f"><label>Fecha</label><input type="date" id="e_f" value="${esc(o.fecha)}"></div>
     <div class="f"><label>Viaje del día</label><select id="e_v">${Array.from({ length: nViajes }, (_, i) => i + 1).map(n => `<option value="${n}" ${+o.viaje === n ? 'selected' : ''}>Viaje ${n}</option>`).join('')}</select><span class="h">Si hace 2 viajes en el día, separalos acá</span></div>
     <div class="f w"><label style="display:flex;justify-content:space-between;align-items:center">Cliente <button type="button" class="btn sm" onclick="epPicker()" ${S.ep ? '' : 'disabled title="Sin conexión con Estadopedidos"'}>📋 Traer de Estadopedidos</button></label><input id="e_c" list="e_cl" value="${esc(o.cliente || '')}" onchange="entAuto()" placeholder="Nombre del cliente (de Cobranzas, Estadopedidos o escribilo)"><datalist id="e_cl">${clis.map(c => `<option value="${esc(c)}">`).join('')}</datalist><span class="h" id="e_ch"></span></div>
@@ -824,6 +914,7 @@ async function guardarEnt(otra) {
   if (!o.cliente) return toast('Falta el cliente', true);
   if (o.accion !== 'cobrar' && !o.kg && !o.pos) return toast('Poné los kg o las posiciones (o elegí Solo cobrar)', true);
   if (!o.id) { o.id = uid('EN'); o.creado = o.mod; const g = entViajesDia(o.fecha).find(x => x.n === o.viaje); o.orden = g ? Math.max(g.list.length, ...g.list.map(x => +x.orden || 0)) + 1 : 1; }
+  S.entDia = o.fecha; if (!dias().includes(o.fecha)) S.ini = lunesDe(o.fecha);
   const ok = await escribir('Entregas', () => entWrite(d => { const i = d.entregas.findIndex(x => x.id === o.id); if (i >= 0) d.entregas[i] = o; else d.entregas.push(o); }));
   if (ok && otra) formEnt({ fecha: o.fecha, viaje: o.viaje, cliente: '', pos: '', kg: '', lugar: '', horario: '', obs: '', estado: 'programada', accion: 'entregar' });
 }
@@ -1107,7 +1198,7 @@ function nuevo(area, fecha) {
 function editar(src, id, f) {
   const cp = o => JSON.parse(JSON.stringify(o));
   if (src === 'via') { const o = viajesVivos().find(x => x.id === id); if (o) formVia(cp(o)); return; }
-  if (src === 'ent') { S.ini = lunesDe(f); irTab('ent'); setTimeout(() => { const e = $('ed-' + f); if (e) e.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 60); return; }
+  if (src === 'ent') { S.ini = lunesDe(f); S.entDia = f; irTab('ent'); return; }
   if (src === 'entx') { const o = entVivas().find(x => x.id === id); if (o) formEnt(cp(o)); return; }
   if (src === 'pet') { const d = S.pet.planificacion[f]; const o = d && d.ops.find(x => x.id === id); if (o) formPet(cp(o), f); return; }
   if (src === 'ter') { const o = (S.ter.cronograma || []).find(x => x.id === id); if (o) formTer(cp(o)); return; }
