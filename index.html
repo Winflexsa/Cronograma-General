@@ -351,7 +351,7 @@ table.t tr.cl{cursor:pointer}table.t tr.cl:hover td{background:#fafafa}
 
 <script>
 'use strict';
-const VERSION = 'v2.8';
+const VERSION = 'v2.9';
 document.getElementById('ver').textContent = '· ' + VERSION;
 
 /* ═════════ CONEXIONES (las mismas que usan las apps) ═════════ */
@@ -887,7 +887,7 @@ function tabEntregas() {
   const prom = occs.length ? occs.reduce((s, x) => s + x, 0) / occs.length : null;
   let h = `<div class="hero ent"><div><div class="s">Semana del ${dLargo(ds[0])} al ${dLargo(ds[6])} · camión de Eugenio (${capTxt('Eugenio')})</div><div class="t">Entregas a clientes</div></div>
     <div class="r"><div><small>Paradas</small><b>${nE}</b></div><div><small>Viajes</small><b>${nV}</b></div><div><small>Kg</small><b>${fmt(kg)}</b></div><div><small>Ocupación prom.</small><b>${pct(prom)}</b></div></div></div>
-    <div class="bar"><button class="btn ic" onclick="semanaEnt(-1)">◀</button><button class="btn" onclick="semanaEnt(0)">Esta semana</button><button class="btn ic" onclick="semanaEnt(1)">▶</button><span class="note" style="margin-left:6px">Elegí el día para ver y armar su ruta</span></div>`;
+    <div class="bar"><button class="btn ic" onclick="semanaEnt(-1)">◀</button><button class="btn" onclick="semanaEnt(0)">Esta semana</button><button class="btn ic" onclick="semanaEnt(1)">▶</button><span class="note" style="margin-left:6px">Elegí el día para ver y armar su ruta</span><span style="flex:1"></span>${nE ? `<button class="btn" onclick="rutaSemana()">📄 PDF de la semana</button>` : ''}</div>`;
   if (S.err.via) return `<div class="entw">${h}${sinConexion(S.err.via)}</div>`;
   // barra de días
   h += `<div class="edays">` + ds.map(d => {
@@ -1027,10 +1027,16 @@ function entWhats(f) {
 }
 async function hojaRuta(f) {
   const doc = pdfNuevo('landscape'); if (!doc) return;
-  const logo = await logoData(), W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 10;
+  dibujarRuta(doc, f, await logoData());
+  pdfPie(doc);
+  doc.save(`ruta-del-dia_eugenio_${f}.pdf`);
+  toast('Ruta del día descargada');
+}
+function dibujarRuta(doc, f, logo) {
+  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 10;
   const vs = entViajesDia(f), todas = vs.flatMap(g => g.list.filter(e => e.estado !== 'cancelada'));
   const nCob = todas.filter(cobra).length;
-  pdfEncabezado(doc, 'Ruta del día · Eugenio', `${DIASL[dow(f)]} ${dm(f)}/${f.slice(0, 4)} · ${todas.length} parada${todas.length === 1 ? '' : 's'} · ${vs.length} viaje${vs.length === 1 ? '' : 's'}${nCob ? ' · ' + nCob + ' con cobro' : ''}`, [63, 138, 31], logo);
+  pdfEncabezado(doc, 'Ruta del día · Eugenio', `${DIASL[dow(f)]} ${dm(f)}/${f.slice(0, 4)} · ${todas.length} parada${todas.length === 1 ? '' : 's'} · ${vs.length} viaje${vs.length === 1 ? '' : 's'}${nCob ? ' · ' + nCob + ' con cobro' : ''}`, [10, 94, 56], logo);
   let y = 30;
   // columnas: Orden | Cliente (OC/producto) | Dirección | Tipo | Horario | Posic. | Kg | Observaciones | ✓
   const C = { o: M, c: M + 10, d: M + 66, t: M + 128, h: M + 162, p: M + 190, k: M + 204, ob: M + 222, ok: W - M - 8 };
@@ -1039,8 +1045,8 @@ async function hojaRuta(f) {
   vs.forEach(g => {
     const p = entOcc(g), vivas = g.list.filter(e => e.estado !== 'cancelada');
     if (y > H - 40) { doc.addPage(); y = 14; }
-    doc.setFillColor(241, 248, 234); doc.setDrawColor(210, 232, 193); doc.roundedRect(M, y, W - 2 * M, 9, 2, 2, 'FD');
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(63, 138, 31); doc.text(`Viaje ${g.n}`, M + 4, y + 6.2);
+    doc.setFillColor(228, 246, 236); doc.setDrawColor(210, 238, 221); doc.roundedRect(M, y, W - 2 * M, 9, 2, 2, 'FD');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(14, 122, 73); doc.text(`Viaje ${g.n}`, M + 4, y + 6.2);
     doc.setFontSize(9); doc.setTextColor(31, 41, 55); doc.text(`${vivas.length} parada${vivas.length === 1 ? '' : 's'} · ${g.pos ? g.pos + ' posiciones · ' : ''}${fmt(g.kg)} kg · ${pct(p)} de ${capTxt('Eugenio')}`, W - M - 4, y + 6.2, { align: 'right' });
     y += 11; head();
     vivas.forEach(e => {
@@ -1054,7 +1060,7 @@ async function hojaRuta(f) {
       const h = Math.max(cl.length + sub.length, di.length, ho.length, ob.length, tp.length) * 3.9 + 4;
       if (y + h > H - 14) { doc.addPage(); y = 14; head(); }
       if (a !== 'entregar') { doc.setFillColor(253, 246, 227); doc.rect(M, y, W - 2 * M, h, 'F'); }
-      doc.setFillColor(63, 138, 31); doc.circle(C.o + 4.5, y + 3.6, 3, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.text(String(ordenDia(f, e.id)), C.o + 4.5, y + 4.7, { align: 'center' });
+      doc.setFillColor(14, 122, 73); doc.circle(C.o + 4.5, y + 3.6, 3, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.text(String(ordenDia(f, e.id)), C.o + 4.5, y + 4.7, { align: 'center' });
       doc.setTextColor(31, 41, 55); doc.text(cl, C.c + 1.2, y + 4.4);
       if (sub.length) { doc.setFont('helvetica', 'normal'); doc.setFontSize(7.6); doc.setTextColor(107, 114, 128); doc.text(sub, C.c + 1.2, y + 4.4 + cl.length * 3.9); }
       doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(31, 41, 55); doc.text(di, C.d + 1.2, y + 4.4); doc.text(ho, C.h + 1.2, y + 4.4);
@@ -1071,9 +1077,40 @@ async function hojaRuta(f) {
   if (y > H - 24) { doc.addPage(); y = 20; }
   const yf = Math.max(y + 8, H - 18);
   doc.text('Firma chofer: ______________________', M, yf); doc.text('Hora salida: ________   Hora regreso: ________   Km: ________', W - M, yf, { align: 'right' });
+}
+async function rutaSemana() { // resumen de la semana + una hoja de ruta por cada día con entregas
+  const ds = dias(), conE = ds.filter(d => entResumen(d).n);
+  if (!conE.length) return toast('No hay entregas cargadas esta semana', true);
+  const doc = pdfNuevo('landscape'); if (!doc) return;
+  const logo = await logoData(), W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 10;
+  let nT = 0, kgT = 0, posT = 0; ds.forEach(d => { const r = entResumen(d); nT += r.n; kgT += r.kg; posT += r.pos; });
+  pdfEncabezado(doc, 'Entregas de la semana · Eugenio', `Semana del ${dm(ds[0])} al ${dm(ds[6])}/${ds[6].slice(0, 4)} · ${nT} parada${nT === 1 ? '' : 's'} · ${posT} posiciones · ${fmt(kgT)} kg`, [10, 94, 56], logo);
+  let y = 31;
+  const C = { d: M, n: M + 34, p: M + 52, k: M + 68, o: M + 88, c: M + 112 };
+  doc.setFillColor(242, 245, 242); doc.rect(M, y, W - 2 * M, 6.5, 'F'); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(92, 102, 94);
+  [['DÍA', C.d], ['PARADAS', C.n], ['POS.', C.p], ['KG', C.k], ['CARGA', C.o], ['CLIENTES (en orden de ruta)', C.c]].forEach(([t, x]) => doc.text(t, x + 1.5, y + 4.4)); y += 6.5;
+  ds.forEach(d => {
+    const r = entResumen(d), cl = r.vs.flatMap(g => g.list.filter(e => e.estado !== 'cancelada').map(e => `${ordenDia(d, e.id)}. ${e.cliente}${e.pos ? ' (' + e.pos + ' pos)' : ''}`));
+    const occ = r.vs.length ? Math.max(...r.vs.map(g => entOcc(g) || 0)) : null;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+    const lines = cl.length ? doc.splitTextToSize(cl.join('   ·   '), W - M - C.c - 3) : ['Sin entregas'];
+    const h = Math.max(1, lines.length) * 4 + 4;
+    if (y + h > H - 14) { doc.addPage(); y = 14; }
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(...(r.n ? [10, 94, 56] : [148, 160, 150])); doc.text(`${DIAS[dow(d)]} ${dm(d)}`, C.d + 1.5, y + 4.6);
+    doc.setTextColor(25, 33, 27); doc.setFontSize(9); doc.setFont('helvetica', r.n ? 'bold' : 'normal');
+    doc.text(r.n ? String(r.n) : '—', C.n + 1.5, y + 4.6); doc.text(r.pos ? String(r.pos) : '—', C.p + 1.5, y + 4.6); doc.text(r.kg ? fmt(r.kg) : '—', C.k + 1.5, y + 4.6);
+    if (occ != null) { doc.setTextColor(...occRGB(occ)); doc.text(pct(occ), C.o + 1.5, y + 4.6); }
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(...(r.n ? [25, 33, 27] : [148, 160, 150])); doc.text(lines, C.c + 1.5, y + 4.6);
+    doc.setDrawColor(226, 232, 226); doc.setLineWidth(.2); doc.line(M, y + h, W - M, y + h); y += h;
+  });
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(25, 33, 27);
+  doc.text('TOTAL', C.d + 1.5, y + 5); doc.text(String(nT), C.n + 1.5, y + 5); doc.text(String(posT), C.p + 1.5, y + 5); doc.text(fmt(kgT), C.k + 1.5, y + 5);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(92, 102, 94);
+  doc.text('Carga = viaje más cargado del día contra la capacidad de Eugenio. En las páginas siguientes va la hoja de ruta de cada día.', M, y + 13);
+  conE.forEach(d => { doc.addPage(); dibujarRuta(doc, d, logo); });
   pdfPie(doc);
-  doc.save(`ruta-del-dia_eugenio_${f}.pdf`);
-  toast('Ruta del día descargada');
+  doc.save(`entregas-semana_eugenio_${ds[0]}.pdf`);
+  toast('PDF de la semana descargado');
 }
 
 /* ═════════ PDF ═════════ */
@@ -1083,8 +1120,8 @@ async function logoData() {
   try { const b = await (await fetch('icon-cronograma-192.png')).blob(); LOGO_DATA = await new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(b); }); } catch (_) { LOGO_DATA = ''; }
   return LOGO_DATA;
 }
-const RGB = { ent: [63, 138, 31], via: [109, 79, 194], pet: [37, 99, 235], ter: [15, 138, 95], lam: [194, 101, 15], ref: [14, 138, 138], evt: [120, 113, 108] };
-const RGBL = { ent: [241, 248, 234], via: [243, 239, 252], pet: [238, 244, 255], ter: [235, 248, 241], lam: [253, 243, 231], ref: [232, 246, 246], evt: [245, 245, 244] };
+const RGB = { ent: [14, 122, 73], via: [109, 79, 194], pet: [37, 99, 235], ter: [15, 138, 95], lam: [194, 101, 15], ref: [14, 138, 138], evt: [120, 113, 108] };
+const RGBL = { ent: [228, 246, 236], via: [243, 239, 252], pet: [238, 244, 255], ter: [235, 248, 241], lam: [253, 243, 231], ref: [232, 246, 246], evt: [245, 245, 244] };
 const occRGB = p => p == null ? [148, 163, 184] : p >= .85 ? [14, 122, 73] : p >= .6 ? [180, 130, 20] : [180, 35, 24];
 function pdfNuevo(orient) {
   if (!window.jspdf) { toast('No se pudo cargar el generador de PDF (revisá internet)', true); return null; }
