@@ -209,6 +209,37 @@ main{padding:18px 24px 40px;max-width:1800px;margin:0 auto}
 .addrow button:hover{background:var(--ent-l)}
 .vacio{background:#fff;border:1px dashed var(--border2);border-radius:16px;padding:34px 20px;text-align:center;color:var(--text2)}
 .vacio b{display:block;font-size:16px;color:var(--text);margin-bottom:4px}
+.entw{max-width:1240px;margin:0 auto}
+.ecols{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;align-items:start}
+.emain{min-width:0}
+.eside{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh);overflow:hidden;position:sticky;top:12px}
+.eside .esh{padding:11px 14px;border-bottom:1px solid var(--border);background:#fafbfa;font-weight:800;font-size:13px;color:var(--ent);display:flex;justify-content:space-between;align-items:center}
+.eside .esh span{font-weight:600;color:var(--text2);font-size:12px}
+.esd{border-top:1px solid #f1f2f4;padding:8px 14px;cursor:pointer}
+.esd:first-of-type{border-top:none}
+.esd:hover{background:#fbfcfb}
+.esd.on{background:var(--ent-l)}
+.esd .esdh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12.5px}
+.esd .esdh b{font-size:13px}
+.esd .esdh span{color:var(--text2);font-family:var(--mono);font-size:11.5px;white-space:nowrap}
+.esd ol{margin:4px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:2px}
+.esd li{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--text)}
+.esd li span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.esd li span:last-child{color:var(--text3);font-family:var(--mono);font-size:11px;white-space:nowrap}
+.esd li.done span:first-child{text-decoration:line-through;color:var(--text3)}
+.esd .esv{font-size:11.5px;color:var(--text3)}
+.stop{grid-template-columns:36px minmax(0,1fr) auto;gap:12px;padding:11px 14px}
+.stop .num{width:28px;height:28px;font-size:13px}
+.stop .sc b{font-size:14.5px}
+.stop .carga{display:inline-flex;gap:6px;align-items:baseline;margin-left:8px;font-family:var(--mono);font-size:12.5px;color:var(--text);background:#f3f6f3;border-radius:7px;padding:1px 7px;vertical-align:1px}
+.stop .carga small{color:var(--text2);font-size:11.5px}
+.stop .sr{flex-direction:row;align-items:center}
+.conex{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--sh);padding:22px;max-width:620px;margin:10px auto}
+.conex h3{margin:0 0 6px;font-size:18px}
+.conex p{margin:0 0 12px;color:var(--text2);font-size:13.5px;line-height:1.45}
+.conex .row{display:flex;gap:8px;flex-wrap:wrap}
+.conex .row input{flex:1;min-width:200px;font-family:var(--mono);font-size:12.5px;padding:9px 10px;border:1px solid var(--border2);border-radius:10px}
+@media (max-width:1100px){.ecols{grid-template-columns:1fr}.eside{position:static}}
 @media (max-width:760px){
   .edays{grid-template-columns:repeat(7,104px)}
   .stop{grid-template-columns:36px 1fr;gap:10px}
@@ -318,7 +349,7 @@ table.t tr.cl{cursor:pointer}table.t tr.cl:hover td{background:#fafafa}
 
 <script>
 'use strict';
-const VERSION = 'v2.6';
+const VERSION = 'v2.7';
 document.getElementById('ver').textContent = '· ' + VERSION;
 
 /* ═════════ CONEXIONES (las mismas que usan las apps) ═════════ */
@@ -595,7 +626,7 @@ function irTab(t) { S.tab = t; lsSet('cg_tab', t); render(); window.scrollTo(0, 
 function render() {
   renderSync();
   $('tabs').innerHTML = TABS.map(t => `<button class="tab ${S.tab === t.id ? 'on' : ''}" onclick="irTab('${t.id}')">${t.lbl}</button>`).join('');
-  if (S.err.pet === 'Falta conectar' && !S.lam && !S.ter) { $('app').innerHTML = ''; return renderConexion(); }
+  if (S.err.pet === 'Falta conectar' && !S.lam && !S.ter) { $('app').innerHTML = sinConexion('Falta conectar'); return; }
   $('app').innerHTML = S.tab === 'ent' ? tabEntregas() : S.tab === 'viajes' ? tabViajes() : S.tab === 'anal' ? tabAnalisis() : tabCrono();
   if (S.tab === 'ent') { const e = document.querySelector('.eday.on'), bar = document.querySelector('.edays'); if (e && bar && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = e.offsetLeft - bar.clientWidth / 2 + e.clientWidth / 2; }
   if (S.tab === 'crono' && window.innerWidth < 760 && !render._scrolled && ultCarga) { const e = document.querySelector('.day.hoy'); if (e) { render._scrolled = true; setTimeout(() => e.scrollIntoView({ block: 'start' }), 50); } }
@@ -623,7 +654,7 @@ function tabCrono() {
     <button class="btn ic" onclick="window.print()" title="Imprimir">🖨</button>
   </div>
   <div class="bar" style="margin-top:-4px"><div class="chips">${AREAS.map(a => `<span class="fchip ${S.ocultas.includes(a.id) ? 'off' : ''}" onclick="toggleArea('${a.id}')"><i style="background:${a.col}"></i>${a.nom}</span>`).join('')}</div>
-  ${S.err.pet === 'Falta conectar' ? `<button class="btn sm" onclick="renderConexion()">Conectar PET / Viajes</button>` : ''}</div>
+  ${S.err.pet === 'Falta conectar' ? `<button class="btn sm" onclick="renderConexion()">Conectar PET / Viajes</button>` : (gistCreds() ? `<button class="btn sm" onclick="compartirConexion()" title="Generar el link para conectar a otra persona">📲 Conectar otra compu</button>` : '')}</div>
   <div class="week">`;
   ds.forEach(d => {
     const bloques = areasVis().map(a => {
@@ -667,7 +698,7 @@ function tabViajes() {
   let h = `<div class="hero via"><div><div class="s">Lanús → Chivilcoy → Lanús · en el día</div><div class="t">Viajes</div></div>
     <div class="r"><div><small>Próximos</small><b>${prox.length}</b></div><div><small>Sin cerrar</small><b>${atras.length}</b></div><div><small>Realizados 45 días</small><b>${hechos.filter(v => v.estado === 'realizado').length}</b></div></div></div>
     <div class="bar"><span class="note">Capacidad: ${Object.keys(caps()).map(t => `<b>${esc(t)}</b> ${capTxt(t)}`).join(' · ')}</span><span style="flex:1"></span><button class="btn via" onclick="nuevo('via','${hoy}')">🚚 Nuevo viaje</button></div>`;
-  if (S.err.via) return h + `<div class="info">Sin conexión con viajes: ${esc(S.err.via)}</div>`;
+  if (S.err.via) return h + sinConexion(S.err.via);
   if (atras.length) h += `<div class="sec"><h3 style="color:var(--mid)">Pasados sin cerrar · marcalos realizados o cancelados</h3></div><div class="vgrid">${atras.map(vcard).join('')}</div>`;
   h += `<div class="sec"><h3>Próximos viajes</h3></div>` + (prox.length ? `<div class="vgrid">${prox.map(vcard).join('')}</div>` : `<div class="info">No hay viajes programados.</div>`);
   h += `<div class="sec"><h3>Últimos 45 días</h3></div>` + (hechos.length ? `<div class="vgrid">${hechos.map(vcard).join('')}</div>` : `<div class="info">Todavía no hay viajes realizados.</div>`);
@@ -699,7 +730,7 @@ function tabAnalisis() {
   let h = `<div class="hero via"><div><div class="s">${PERS[S.per]} · ${dm(d1)} al ${dm(d2)}</div><div class="t">Análisis de viajes · qué tan llenos van los camiones</div></div>
     <div class="r"><div><small>Ocupación promedio</small><b>${pct(prom(oTot))}</b></div></div></div>
     <div class="bar"><div class="seg">${Object.keys(PERS).map(p => `<button class="${S.per === p ? 'on' : ''}" onclick="setPer('${p}')">${PERS[p]}</button>`).join('')}</div><span style="flex:1"></span><button class="btn" onclick="pdfAnalisis()">📄 PDF</button><button class="btn" onclick="formCaps()">⚙ Capacidades</button></div>`;
-  if (S.err.via) return h + `<div class="info">Sin conexión con viajes: ${esc(S.err.via)}</div>`;
+  if (S.err.via) return h + sinConexion(S.err.via);
   h += `<div class="kpis">
     ${kpi(vs.length, 'Viajes', sinCerrar ? `${sinCerrar} sin marcar realizado` : 'todos cerrados')}
     ${kpi(pct(prom(oTot)), 'Ocupación total', 'ida + vuelta', occCol(prom(oTot)))}
@@ -812,7 +843,7 @@ function tabEntregas() {
   let h = `<div class="hero ent"><div><div class="s">Semana del ${dLargo(ds[0])} al ${dLargo(ds[6])} · camión de Eugenio (${capTxt('Eugenio')})</div><div class="t">Entregas a clientes</div></div>
     <div class="r"><div><small>Paradas</small><b>${nE}</b></div><div><small>Viajes</small><b>${nV}</b></div><div><small>Kg</small><b>${fmt(kg)}</b></div><div><small>Ocupación prom.</small><b>${pct(prom)}</b></div></div></div>
     <div class="bar"><button class="btn ic" onclick="semanaEnt(-1)">◀</button><button class="btn" onclick="semanaEnt(0)">Esta semana</button><button class="btn ic" onclick="semanaEnt(1)">▶</button><span class="note" style="margin-left:6px">Elegí el día para ver y armar su ruta</span></div>`;
-  if (S.err.via) return h + `<div class="info">Sin conexión: ${esc(S.err.via)}</div>`;
+  if (S.err.via) return `<div class="entw">${h}${sinConexion(S.err.via)}</div>`;
   // barra de días
   h += `<div class="edays">` + ds.map(d => {
     const r = entResumen(d);
@@ -821,33 +852,40 @@ function tabEntregas() {
       <div class="dd">${+d.slice(8, 10)} ${MESES[+d.slice(5, 7) - 1]}</div>
       <div class="ds">${r.n ? `<b>${r.n}</b> parada${r.n === 1 ? '' : 's'} · ${fmt(r.kg)} kg${r.cob ? ` <span class="cobd" title="Con cobro">· 💵${r.cob}</span>` : ''}` : 'Sin entregas'}</div></button>`;
   }).join('') + `</div>`;
-  // ruta del día elegido
+  // ruta del día elegido (izquierda) + semana de un vistazo (derecha)
   const r = entResumen(sel);
   const nueva = n => `formEnt({fecha:'${sel}',viaje:${n},cliente:'',pos:'',kg:'',lugar:'',horario:'',obs:'',estado:'programada',accion:'entregar'})`;
-  h += `<div class="rhead"><h2>${DIASL[dow(sel)]} ${+sel.slice(8, 10)} de ${MESES[+sel.slice(5, 7) - 1]}${sel === hoy ? ' · hoy' : ''}</h2>
+  let m = `<div class="rhead"><h2>${DIASL[dow(sel)]} ${+sel.slice(8, 10)} de ${MESES[+sel.slice(5, 7) - 1]}${sel === hoy ? ' · hoy' : ''}</h2>
     <span class="sum">${r.n ? `${r.n} parada${r.n === 1 ? '' : 's'} · ${r.vs.length} viaje${r.vs.length === 1 ? '' : 's'} · ${r.pos ? r.pos + ' pos. · ' : ''}${fmt(r.kg)} kg${r.cob ? ` · ${r.cob} con cobro` : ''}${r.hechas ? ` · ${r.hechas} hecha${r.hechas === 1 ? '' : 's'}` : ''}` : ''}</span>
     <span class="sp"></span>
     ${r.n ? `<button class="btn" onclick="hojaRuta('${sel}')">📄 Ruta del día (PDF)</button><button class="btn" onclick="entWhats('${sel}')">📋 WhatsApp</button>` : ''}
     <button class="btn ent" onclick="${nueva(entViajeLibre(sel))}">＋ Agregar parada</button></div>`;
-  if (!r.vs.length) return h + `<div class="vacio"><b>No hay entregas cargadas para este día</b>Agregá la primera parada: cliente, dirección, kg y si hay que cobrar.<div style="margin-top:14px"><button class="btn ent" onclick="${nueva(1)}">＋ Agregar parada</button></div></div>`;
+  if (!r.vs.length) m += `<div class="vacio"><b>No hay entregas cargadas para este día</b>Agregá la primera parada: cliente, dirección, kg y si hay que cobrar.<div style="margin-top:14px"><button class="btn ent" onclick="${nueva(1)}">＋ Agregar parada</button></div></div>`;
   r.vs.forEach((g, gi) => {
     const p = entOcc(g);
-    h += `<div class="vbox"><div class="vbh"><span class="vt">🚐 Viaje ${g.n}</span><span class="vm">${g.list.filter(e => e.estado !== 'cancelada').length} parada${g.list.length === 1 ? '' : 's'} · ${g.pos ? g.pos + ' pos. · ' : ''}${fmt(g.kg)} kg</span>
+    m += `<div class="vbox"><div class="vbh"><span class="vt">🚐 Viaje ${g.n}</span><span class="vm">${g.list.filter(e => e.estado !== 'cancelada').length} parada${g.list.length === 1 ? '' : 's'} · ${g.pos ? g.pos + ' pos. · ' : ''}${fmt(g.kg)} kg</span>
       <span class="cap"><span class="note">Carga</span>${barra(p)}<b style="color:${occCol(p)}">${pct(p)}</b></span></div>`;
     g.list.forEach((e, ix) => {
       const a = accDe(e), hecha = e.estado === 'entregada', sinCarga = a === 'cobrar' && !e.kg && !e.pos;
-      h += `<div class="stop ${hecha ? 'done' : ''} ${e.estado === 'cancelada' ? 'canc' : ''}" data-src="entx" data-id="${esc(e.id)}">
+      m += `<div class="stop ${hecha ? 'done' : ''} ${e.estado === 'cancelada' ? 'canc' : ''}" data-src="entx" data-id="${esc(e.id)}">
         <div class="num">${ordenDia(sel, e.id)}</div>
-        <div class="sc"><b>${esc(e.cliente)}</b><span class="tipo ${a}">${ACC[a].ic} ${ACC[a].lbl}</span>${e.estado === 'cancelada' ? ' <span class="tg bad">Cancelada</span>' : ''}
+        <div class="sc"><b>${esc(e.cliente)}</b>${sinCarga ? '' : `<span class="carga">${e.pos ? `${esc(e.pos)} pos.` : ''}${e.kg ? ` <small>${fmt(e.kg)} kg</small>` : ''}</span>`}<span class="tipo ${a}">${ACC[a].ic} ${ACC[a].lbl}</span>${e.estado === 'cancelada' ? ' <span class="tg bad">Cancelada</span>' : ''}
           <div class="sl"><span>📍 ${e.lugar ? esc(e.lugar) : '<i>sin dirección</i>'}</span>${e.horario ? `<span>🕑 ${esc(e.horario)}</span>` : ''}${e.oc || e.producto ? `<span>🧾 ${[e.oc ? 'OC ' + esc(e.oc) : '', esc(e.producto || '')].filter(Boolean).join(' · ')}</span>` : ''}</div>
           ${a !== 'entregar' ? `<div class="cob">💵 Cobrar: ${e.cobrar ? esc(e.cobrar) : '<i>sin detalle</i>'}</div>` : ''}
           ${e.obs ? `<div class="ob">📝 ${esc(e.obs)}</div>` : ''}</div>
-        <div class="sr"><div class="kg">${sinCarga ? '—' : fmt(e.kg) + ' kg'}${!sinCarga && e.pos ? `<small>${esc(e.pos)} pos.</small>` : ''}</div>
-          <div class="acts"><button title="Subir en la ruta" onclick="event.stopPropagation();entMover('${esc(e.id)}',-1)" ${ix === 0 ? 'disabled' : ''}>▲</button><button title="Bajar en la ruta" onclick="event.stopPropagation();entMover('${esc(e.id)}',1)" ${ix === g.list.length - 1 ? 'disabled' : ''}>▼</button><button class="${hecha ? 'ok' : ''}" title="${hecha ? 'Marcar pendiente' : 'Marcar hecha'}" onclick="event.stopPropagation();entHecha('${esc(e.id)}')">${hecha ? '✓ Hecha' : '✓'}</button></div></div></div>`;
+        <div class="sr"><div class="acts"><button title="Subir en la ruta" onclick="event.stopPropagation();entMover('${esc(e.id)}',-1)" ${ix === 0 ? 'disabled' : ''}>▲</button><button title="Bajar en la ruta" onclick="event.stopPropagation();entMover('${esc(e.id)}',1)" ${ix === g.list.length - 1 ? 'disabled' : ''}>▼</button><button class="${hecha ? 'ok' : ''}" title="${hecha ? 'Marcar pendiente' : 'Marcar hecha'}" onclick="event.stopPropagation();entHecha('${esc(e.id)}')">${hecha ? '✓ Hecha' : '✓'}</button></div></div></div>`;
     });
-    h += `<div class="addrow"><button onclick="${nueva(g.n)}">＋ Parada al viaje ${g.n}</button>${gi === r.vs.length - 1 ? `<button onclick="${nueva(g.n + 1)}">＋ Armar viaje ${g.n + 1}</button>` : ''}</div></div>`;
+    m += `<div class="addrow"><button onclick="${nueva(g.n)}">＋ Parada al viaje ${g.n}</button>${gi === r.vs.length - 1 ? `<button onclick="${nueva(g.n + 1)}">＋ Armar viaje ${g.n + 1}</button>` : ''}</div></div>`;
   });
-  return h;
+  // semana de un vistazo
+  let sd = `<aside class="eside"><div class="esh">La semana <span>${nE} parada${nE === 1 ? '' : 's'}</span></div>`;
+  ds.forEach(d => {
+    const rr = entResumen(d), es = rr.vs.flatMap(g => g.list);
+    sd += `<div class="esd ${d === sel ? 'on' : ''}" onclick="selDiaEnt('${d}')"><div class="esdh"><b>${DIAS[dow(d)]} ${+d.slice(8, 10)}</b><span>${rr.n ? `${rr.pos ? rr.pos + ' pos · ' : ''}${fmt(rr.kg)} kg` : ''}</span></div>
+      ${es.length ? `<ol>${es.map(e => `<li class="${e.estado === 'entregada' ? 'done' : ''}" ${e.estado === 'cancelada' ? 'style="opacity:.45"' : ''}><span>${esc(e.cliente)}</span><span>${e.pos ? esc(e.pos) + ' pos' : e.kg ? fmt(e.kg) + ' kg' : ''}</span></li>`).join('')}</ol>` : '<div class="esv">Sin entregas</div>'}</div>`;
+  });
+  sd += '</aside>';
+  return `<div class="entw">${h}<div class="ecols"><div class="emain">${m}</div>${sd}</div></div>`;
 }
 async function entHecha(id) {
   const e = entVivas().find(x => x.id === id); if (!e) return;
@@ -1572,10 +1610,47 @@ async function escribir(nom, fn) {
 }
 
 /* ═════════ CONEXIÓN DEL GIST ═════════ */
+function linkConexion() { // link de un toque para conectar otra compu o celular
+  const c = gistCreds(); if (!c || !c.gistId || !c.token) return '';
+  const b = btoa(unescape(encodeURIComponent(JSON.stringify({ g: c.gistId, t: c.token })))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return 'https://winflexsa.github.io/Cronograma-General/#wfc=' + b;
+}
+function compartirConexion() {
+  const l = linkConexion(); if (!l) return renderConexion();
+  const txt = 'Abrí este link una sola vez para conectar el Cronograma General (viajes y entregas): ' + l;
+  modal('📲 Conectar otra compu o celular', `
+    <div class="info">Mandale este link a la persona por WhatsApp. Lo abre <b>una sola vez</b> en su compu o celular y queda conectada para siempre. Es personal: no lo pegues en grupos.</div>
+    <div class="f w"><label>Link de conexión</label><input id="g_lk" class="mono" readonly value="${esc(l)}" onclick="this.select()"></div>`,
+    `<div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="copiarLink()">Copiar link</button><a class="btn ent" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(txt)}">Enviar por WhatsApp</a><button class="btn" onclick="cerrar()">Listo</button></div>`);
+}
+function copiarLink() {
+  const i = $('g_lk'); if (!i) return; i.select();
+  try { navigator.clipboard.writeText(i.value).then(() => toast('Link copiado ✓'), () => { document.execCommand('copy'); toast('Link copiado ✓'); }); }
+  catch (_) { document.execCommand('copy'); toast('Link copiado ✓'); }
+}
+function conectarConLink(id) { // acepta el link completo pegado
+  const v = (vt(id) || '').trim(), m = v.match(/wfc=([^&\s]+)/);
+  if (!m) return toast('Ese no es el link de conexión. Pedile a Matías el link que empieza con winflexsa.github.io/Cronograma-General/#wfc=', true);
+  try {
+    const j = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1]).replace(/-/g, '+').replace(/_/g, '/')))));
+    if (!j.g || !j.t) throw 0;
+    lsSet('winflex_gist_credentials', JSON.stringify({ gistId: j.g, token: j.t })); cerrar(); toast('Conectado ✓'); cargarTodo(true);
+  } catch (_) { toast('El link está incompleto. Copialo entero de nuevo', true); }
+}
+function sinConexion(det) {
+  if (det !== 'Falta conectar') return `<div class="conex"><h3>No se pudo leer viajes y entregas</h3><p>Error: ${esc(det)}. Revisá internet y probá de nuevo.</p><div class="row"><button class="btn ent" onclick="cargarTodo(true)">Reintentar</button></div></div>`;
+  return `<div class="conex"><h3>Esta compu todavía no está conectada</h3>
+    <p>Para ver y cargar viajes y entregas, abrí <b>una sola vez</b> el link de conexión que te manda Matías por WhatsApp. Después queda conectada para siempre.</p>
+    <p style="margin-bottom:8px">Si ya tenés el link, pegalo acá:</p>
+    <div class="row"><input id="g_pl" placeholder="winflexsa.github.io/Cronograma-General/#wfc=…" onkeydown="if(event.key==='Enter')conectarConLink('g_pl')"><button class="btn ent" onclick="conectarConLink('g_pl')">Conectar</button></div></div>`;
+}
 function renderConexion() {
   const c = gistCreds() || {};
   modal('Conectar PET Chivilcoy y Viajes', `
-    <div class="info">En esta PC ya está conectado si alguna vez abriste la app de PET Chivilcoy en este mismo navegador. Si no, usá el <b>link de conexión</b> que genera PET Chivilcoy (⚙ Configuración) cambiando la dirección por <span class="mono">winflexsa.github.io/Cronograma-General/</span> (dejando lo que va después del #), o cargá los datos acá.</div>
+    <div class="info">La forma fácil: abrí el <b>link de conexión</b> que te manda Matías, o pegalo acá abajo.</div>
+    <div class="f w"><label>Link de conexión</label><input id="g_pl" class="mono" placeholder="winflexsa.github.io/Cronograma-General/#wfc=…"></div>
+    <div class="f w"><button class="btn ent" onclick="conectarConLink('g_pl')">Conectar con el link</button></div>
+    <div class="note" style="width:100%;margin:6px 0 2px">O cargá los datos a mano:</div>
     <div class="f w"><label>Gist ID</label><input id="g_id" value="${esc(c.gistId || '')}" class="mono"></div>
     <div class="f w"><label>Token de GitHub</label><input id="g_tk" type="password" value="${esc(c.token || '')}" class="mono"></div>`,
     `<div></div><div style="display:flex;gap:8px"><button class="btn" onclick="cerrar()">Cancelar</button><button class="btn pri" onclick="guardarConexion()">Conectar</button></div>`);
