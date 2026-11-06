@@ -351,7 +351,7 @@ table.t tr.cl{cursor:pointer}table.t tr.cl:hover td{background:#fafafa}
 
 <script>
 'use strict';
-const VERSION = 'v2.9';
+const VERSION = 'v2.10';
 document.getElementById('ver').textContent = '· ' + VERSION;
 
 /* ═════════ CONEXIONES (las mismas que usan las apps) ═════════ */
@@ -1078,35 +1078,55 @@ function dibujarRuta(doc, f, logo) {
   const yf = Math.max(y + 8, H - 18);
   doc.text('Firma chofer: ______________________', M, yf); doc.text('Hora salida: ________   Hora regreso: ________   Km: ________', W - M, yf, { align: 'right' });
 }
-async function rutaSemana() { // resumen de la semana + una hoja de ruta por cada día con entregas
+async function rutaSemana() { // calendario de la semana + una hoja de ruta por cada día con entregas
   const ds = dias(), conE = ds.filter(d => entResumen(d).n);
   if (!conE.length) return toast('No hay entregas cargadas esta semana', true);
   const doc = pdfNuevo('landscape'); if (!doc) return;
-  const logo = await logoData(), W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 10;
+  const logo = await logoData(), W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 8;
   let nT = 0, kgT = 0, posT = 0; ds.forEach(d => { const r = entResumen(d); nT += r.n; kgT += r.kg; posT += r.pos; });
-  pdfEncabezado(doc, 'Entregas de la semana · Eugenio', `Semana del ${dm(ds[0])} al ${dm(ds[6])}/${ds[6].slice(0, 4)} · ${nT} parada${nT === 1 ? '' : 's'} · ${posT} posiciones · ${fmt(kgT)} kg`, [10, 94, 56], logo);
-  let y = 31;
-  const C = { d: M, n: M + 34, p: M + 52, k: M + 68, o: M + 88, c: M + 112 };
-  doc.setFillColor(242, 245, 242); doc.rect(M, y, W - 2 * M, 6.5, 'F'); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5); doc.setTextColor(92, 102, 94);
-  [['DÍA', C.d], ['PARADAS', C.n], ['POS.', C.p], ['KG', C.k], ['CARGA', C.o], ['CLIENTES (en orden de ruta)', C.c]].forEach(([t, x]) => doc.text(t, x + 1.5, y + 4.4)); y += 6.5;
-  ds.forEach(d => {
-    const r = entResumen(d), cl = r.vs.flatMap(g => g.list.filter(e => e.estado !== 'cancelada').map(e => `${ordenDia(d, e.id)}. ${e.cliente}${e.pos ? ' (' + e.pos + ' pos)' : ''}`));
+  pdfEncabezado(doc, 'Calendario de entregas · Eugenio', `Semana del ${dm(ds[0])} al ${dm(ds[6])}/${ds[6].slice(0, 4)} · ${nT} parada${nT === 1 ? '' : 's'} · ${posT} posiciones · ${fmt(kgT)} kg`, [10, 94, 56], logo);
+  const GR = [10, 94, 56], GM = [14, 122, 73], GL = [228, 246, 236], BD = [210, 220, 211], TX = [25, 33, 27], T2 = [92, 102, 94], T3 = [148, 160, 150];
+  // ancho de columnas: los días sin entregas del fin de semana quedan angostos
+  const peso = ds.map((d, i) => i >= 5 && !entResumen(d).n ? .45 : 1), tot = peso.reduce((x, p) => x + p, 0), gap = 2.2;
+  const anchoUtil = W - 2 * M - gap * 6; let x = M;
+  const top = 28, bot = H - 14;
+  ds.forEach((d, i) => {
+    const w = anchoUtil * peso[i] / tot, r = entResumen(d), es = r.vs.flatMap(g => g.list.filter(e => e.estado !== 'cancelada'));
     const occ = r.vs.length ? Math.max(...r.vs.map(g => entOcc(g) || 0)) : null;
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
-    const lines = cl.length ? doc.splitTextToSize(cl.join('   ·   '), W - M - C.c - 3) : ['Sin entregas'];
-    const h = Math.max(1, lines.length) * 4 + 4;
-    if (y + h > H - 14) { doc.addPage(); y = 14; }
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(...(r.n ? [10, 94, 56] : [148, 160, 150])); doc.text(`${DIAS[dow(d)]} ${dm(d)}`, C.d + 1.5, y + 4.6);
-    doc.setTextColor(25, 33, 27); doc.setFontSize(9); doc.setFont('helvetica', r.n ? 'bold' : 'normal');
-    doc.text(r.n ? String(r.n) : '—', C.n + 1.5, y + 4.6); doc.text(r.pos ? String(r.pos) : '—', C.p + 1.5, y + 4.6); doc.text(r.kg ? fmt(r.kg) : '—', C.k + 1.5, y + 4.6);
-    if (occ != null) { doc.setTextColor(...occRGB(occ)); doc.text(pct(occ), C.o + 1.5, y + 4.6); }
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(...(r.n ? [25, 33, 27] : [148, 160, 150])); doc.text(lines, C.c + 1.5, y + 4.6);
-    doc.setDrawColor(226, 232, 226); doc.setLineWidth(.2); doc.line(M, y + h, W - M, y + h); y += h;
+    // columna
+    doc.setDrawColor(...BD); doc.setLineWidth(.25); doc.setFillColor(...(r.n ? [255, 255, 255] : [246, 248, 246])); doc.roundedRect(x, top, w, bot - top, 2, 2, 'FD');
+    // cabecera del día
+    doc.setFillColor(...(r.n ? GR : [200, 208, 201])); doc.roundedRect(x, top, w, 11, 2, 2, 'F'); doc.rect(x, top + 6, w, 5, 'F');
+    doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(w > 30 ? 8 : 7);
+    doc.text(DIAS[dow(d)].toUpperCase(), x + 2.5, top + 4.6); doc.setFontSize(w > 30 ? 12 : 9.5); doc.text(dm(d), x + 2.5, top + 9.4);
+    if (r.n) { doc.setFontSize(7.5); doc.setFont('helvetica', 'normal'); doc.text(`${r.n} parada${r.n === 1 ? '' : 's'}`, x + w - 2.5, top + 4.6, { align: 'right' }); doc.setFont('helvetica', 'bold'); doc.text(`${r.pos ? r.pos + ' pos · ' : ''}${fmt(r.kg)} kg`, x + w - 2.5, top + 9.4, { align: 'right' }); }
+    let y = top + 13;
+    if (!r.n) { doc.setFont('helvetica', 'italic'); doc.setFontSize(7.5); doc.setTextColor(...T3); doc.text(doc.splitTextToSize('Sin entregas', w - 4), x + w / 2, top + 22, { align: 'center' }); x += w + gap; return; }
+    // barra de carga
+    if (occ != null) { const bw = w - 5; doc.setFillColor(232, 236, 232); doc.roundedRect(x + 2.5, y, bw, 1.8, .9, .9, 'F'); doc.setFillColor(...occRGB(occ)); doc.roundedRect(x + 2.5, y, Math.max(1.8, bw * Math.min(1, occ)), 1.8, .9, .9, 'F');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5); doc.setTextColor(...T2); doc.text(`Carga ${pct(occ)}`, x + 2.5, y + 5); y += 7.5; }
+    // tarjetas de paradas
+    es.forEach(e => {
+      const a = accDe(e), tw = w - 11;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); const cl = doc.splitTextToSize(e.cliente, tw);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.6);
+      const det = [e.pos ? e.pos + ' pos' : '', e.kg ? fmt(e.kg) + ' kg' : ''].filter(Boolean).join(' · ');
+      const sub = []; if (e.lugar) sub.push(...doc.splitTextToSize(e.lugar, tw)); if (e.horario) sub.push(e.horario); if (a !== 'entregar') sub.push(ACC[a].pdf + (e.cobrar ? ': ' + e.cobrar : '')); if (e.oc) sub.push('OC ' + e.oc);
+      const subL = sub.length ? doc.splitTextToSize(sub.join(' · '), tw) : [];
+      const h = 3.2 + cl.length * 3.3 + (det ? 3 : 0) + subL.length * 2.7 + 1.8;
+      if (y + h > bot - 2) { doc.setFont('helvetica', 'italic'); doc.setFontSize(6.5); doc.setTextColor(...T2); doc.text('(sigue en la hoja del día)', x + 2.5, bot - 2.5); y = 1e9; return; }
+      const hecha = e.estado === 'entregada';
+      doc.setFillColor(...(a !== 'entregar' ? [253, 246, 227] : GL)); doc.setDrawColor(...(a !== 'entregar' ? [240, 220, 170] : [210, 238, 221])); doc.roundedRect(x + 1.8, y, w - 3.6, h, 1.4, 1.4, 'FD');
+      doc.setFillColor(...(hecha ? T3 : GM)); doc.circle(x + 5, y + 3.6, 2.1, 'F'); doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(6.8); doc.text(String(ordenDia(d, e.id)), x + 5, y + 4.4, { align: 'center' });
+      let yy = y + 4.4; doc.setFontSize(8); doc.setTextColor(...TX); doc.text(cl, x + 8.4, yy); yy += cl.length * 3.3 - .3;
+      if (det) { doc.setFont('helvetica', 'bold'); doc.setFontSize(6.8); doc.setTextColor(...GM); doc.text(det, x + 8.4, yy); yy += 3; }
+      if (subL.length) { doc.setFont('helvetica', 'normal'); doc.setFontSize(6.4); doc.setTextColor(...T2); doc.text(subL, x + 8.4, yy); }
+      y += h + 1.6;
+    });
+    x += w + gap;
   });
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(25, 33, 27);
-  doc.text('TOTAL', C.d + 1.5, y + 5); doc.text(String(nT), C.n + 1.5, y + 5); doc.text(String(posT), C.p + 1.5, y + 5); doc.text(fmt(kgT), C.k + 1.5, y + 5);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(92, 102, 94);
-  doc.text('Carga = viaje más cargado del día contra la capacidad de Eugenio. En las páginas siguientes va la hoja de ruta de cada día.', M, y + 13);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(...T2);
+  doc.text('Carga = viaje más cargado del día contra la capacidad de Eugenio. En las páginas siguientes va la hoja de ruta de cada día.', M, H - 9.5);
   conE.forEach(d => { doc.addPage(); dibujarRuta(doc, d, logo); });
   pdfPie(doc);
   doc.save(`entregas-semana_eugenio_${ds[0]}.pdf`);
